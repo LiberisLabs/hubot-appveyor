@@ -1,0 +1,43 @@
+{
+  "name": "hubot-finbot",
+  "version": "0.0.1",
+  "author": "David Wood <david.p.wood@gmail.com>",
+  "contributors": [
+    "David Wood <david.p.wood@gmail.com> (http://codesleuth.co.uk/)",
+    "Joshua Hawxwell <m@hawx.me> (http://hawx.me/)"
+  ],
+  "description": "Finbot automates all your fintech needs.",
+  "scripts": {
+    "clean": "rimraf lib scripts test",
+    "prebuild": "npm run clean",
+    "build": "tsc -p src/",
+    "test": "ava"
+  },
+  "main": "build/index.js",
+  "engines": {
+    "node": ">=4.4.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LiberisLabs/hubot-finbot"
+  },
+  "devDependencies": {
+    "ava": "^0.15.2",
+    "express": "^4.13.4",
+    "rimraf": "^2.5.2",
+    "sinon": "^1.17.4",
+    "typescript": "^1.8.10"
+  },
+  "dependencies": {
+    "source-map-support": "^0.4.0"
+  },
+  "keywords": [
+    "hubot",
+    "deploy",
+    "bot",
+    "fintech"
+  ],
+  "bugs": {
+    "url": "https://github.com/LiberisLabs/hubot-finbot/issues"
+  }
+}
