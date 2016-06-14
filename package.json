@@ -8,7 +8,7 @@
   ],
   "description": "Finbot automates all your fintech needs.",
   "scripts": {
-    "clean": "rimraf lib scripts test",
+    "clean": "rimraf build",
     "prebuild": "npm run clean",
     "build": "tsc -p src/",
     "test": "ava"

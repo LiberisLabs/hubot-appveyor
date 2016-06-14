@@ -77,7 +77,7 @@ test('finbot > starts a deploy', (t) => {
   DeployScript(robot);
 
   // assert
-  sinon.assert.calledWith(respondStub, /deploy (.+) v(\d+.\d+.\d+) to (.+)/i, sinon.match.func);
+  sinon.assert.calledWith(respondStub, /deploy (.+) v(.+) to (.+)/i, sinon.match.func);
   sinon.assert.calledWith(replyStub, `Starting deploy of '${project}' to '${environment}'...`);
   sinon.assert.calledWith(httpStub, 'https://ci.appveyor.com/api/deployments');
   sinon.assert.calledWith(headerSpy, 'Authorization', `Bearer ${Config.appveyor.token}`);

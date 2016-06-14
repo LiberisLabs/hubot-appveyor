@@ -4,7 +4,7 @@ import { Config } from '../lib/config';
 
 export default (robot: IRobot) => {
   
-  robot.respond(/deploy (.+) v(\d+.\d+.\d+) to (.+)/i, res => {
+  robot.respond(/deploy (.+) v(.+) to (.+)/i, res => {
     const project = res.match[1];
     const version = res.match[2];
     const environment = res.match[3];
