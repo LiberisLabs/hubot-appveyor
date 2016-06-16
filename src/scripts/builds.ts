@@ -27,7 +27,7 @@ export default (robot: IHubot, appVeyor: IAppVeyor) => {
               fallback: `Build v${build.version}: ${build.status} ${build.link}`,
               title: `Build v${build.version}`,
               title_link: build.link,
-              text: build.status,
+              text: `${build.status} - ${build.branch} - ${build.committer}`,
               color: getColour(build.status)
             }
           })
