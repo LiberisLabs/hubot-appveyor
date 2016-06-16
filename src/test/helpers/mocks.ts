@@ -1,22 +1,23 @@
-import { IRobot, IRobotBrain, IListener, IResponse, IMessageDetail, IScopedHttpClient, IHttpResponse, IHttpClientHandler } from 'hubot';
+import { IRobot, IAdapter, IRobotBrain, IListener, IResponse, IMessageDetail, IScopedHttpClient, IHttpResponse, IHttpClientHandler } from 'hubot';
 import { ISlackAdapter, ICustomMessage } from 'hubot-slack';
 import { Application } from 'express';
+import { IAppVeyor, IBuildResponse, IDeployResponse } from '../../lib/appveyor';
 
 export class MockRobot implements IRobot {
-  public adapter: any;
+  public adapter: IAdapter;
   public brain: IRobotBrain;
   public router: Application;
 
-  public respond(matcher: RegExp, listener: IListener) {}
+  public respond(matcher: RegExp, listener: IListener) { }
   public http(url: string) { return null; }
-  public messageRoom(room: string, msg: string) {}
+  public messageRoom(room: string, msg: string) { }
 }
 
 export class MockResponse implements IResponse {
   public match: string[];
   public message: IMessageDetail;
 
-  public reply(msg: string) {}
+  public reply(msg: string) { }
 }
 
 export class MockScopedHttpClient implements IScopedHttpClient {
@@ -37,5 +38,10 @@ export class MockSlackAdapter implements ISlackAdapter {
 
 export class MockRobotBrain implements IRobotBrain {
   public get(key: string) { return null; }
-  public set(key: string, value: string) {}
+  public set(key: string, value: string) { }
+}
+
+export class MockAppVeyor implements IAppVeyor {
+  public build(projectSlug) { return null; }
+  public deploy(projectSlug, version, environment) { return null; }
 }

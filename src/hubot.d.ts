@@ -24,7 +24,7 @@ declare module "hubot" {
   interface IResponse {
     match: string[];
     message: IMessageDetail;
-    
+
     reply(msg: string);
   }
 

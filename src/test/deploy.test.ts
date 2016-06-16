@@ -1,7 +1,7 @@
 import { test } from 'ava';
 import * as sinon from 'sinon';
 
-import { MockRobot, MockRobotBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter } from './helpers/mocks';
+import { MockRobot, MockRobotBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
 import { IHttpClientHandler } from 'hubot';
 import { ICustomMessage } from 'hubot-slack';
 import { Config } from '../lib/config';
@@ -16,7 +16,7 @@ test('finbot > starts a deploy', (t) => {
   const account = 'some account';
   const room = 'a-room';
   const deploymentId = 1234567890;
-  
+
   Config.appveyor.token = token;
   Config.appveyor.account = account;
 
@@ -32,58 +32,42 @@ test('finbot > starts a deploy', (t) => {
     user: { name: null }
   };
 
-  const httpClient = new MockScopedHttpClient();
-  const headerSpy = sinon.spy(httpClient, 'header');
-  const httpStub = sinon.stub(robot, 'http');
-
-  httpStub.returns(httpClient);
-
-  const postStub = sinon.stub(httpClient, 'post');
-
-  postStub.returns((handler: IHttpClientHandler) => {
-    handler(null, { statusCode: 200 }, JSON.stringify({ deploymentId: deploymentId }));
-  });
-
   respondStub.callsArgWith(1, response);
 
-  const expectedPostBody = JSON.stringify({
-    environmentName: environment,
-    accountName: account,
-    projectSlug: project,
-    buildVersion: version
-  });
+  const expectedLink = `https://ci.appveyor.com/project/${account}/${project}/deployment/${deploymentId}`;
+
+  const deployResponse = { link: expectedLink };
+  const deployPromise = Promise.resolve(deployResponse);
+
+  sinon.stub(deployPromise, 'then')
+       .callsArgWith(0, deployResponse)
+       .returns(Promise.resolve());
+
+  const appVeyor = new MockAppVeyor();
+  sinon.stub(appVeyor, 'deploy').returns(deployPromise);
 
   const slackAdapter = new MockSlackAdapter();
   const customMessageSpy = sinon.spy(slackAdapter, 'customMessage');
-  
+
   robot.adapter = slackAdapter;
 
-  const expectedLink = `https://ci.appveyor.com/project/${account}/${project}/deployment/${deploymentId}`
-  const expectedCustomMessage: ICustomMessage = {
-    channel: room,
-    text: 'Deploy started',
-    attachments: [
-      {
-        fallback: `Started deploy of '${project}' v${version} to '${environment}': ${expectedLink}`,
-        title: `Started deploy of '${project}' v${version}`,
-        title_link: expectedLink,
-        text: `v${version}`,
-        color: '#2795b6'
-      }
-    ]
-  };
-
   // act
-  DeployScript(robot);
+  DeployScript(robot, appVeyor);
 
   // assert
   sinon.assert.calledWith(respondStub, /deploy (.+) v(.+) to (.+)/i, sinon.match.func);
   sinon.assert.calledWith(replyStub, `Starting deploy of '${project}' to '${environment}'...`);
-  sinon.assert.calledWith(httpStub, 'https://ci.appveyor.com/api/deployments');
-  sinon.assert.calledWith(headerSpy, 'Authorization', `Bearer ${Config.appveyor.token}`);
-  sinon.assert.calledWith(headerSpy, 'Content-Type', 'application/json');
-  sinon.assert.calledWith(headerSpy, 'Accept', 'application/json');
-  sinon.assert.calledWith(postStub, expectedPostBody);
-  
-  sinon.assert.calledWith(customMessageSpy, sinon.match(expectedCustomMessage));
+  sinon.assert.calledOnce(customMessageSpy);
+
+  const actualCustomMessage: ICustomMessage = customMessageSpy.getCall(0).args[0];
+  t.is(actualCustomMessage.channel, room);
+  t.is(actualCustomMessage.text, 'Deploy started');
+  t.is(actualCustomMessage.attachments.length, 1);
+
+  const attachment = actualCustomMessage.attachments[0];
+  t.is(attachment.fallback, `Started deploy of '${project}' v${version} to '${environment}': ${expectedLink}`);
+  t.is(attachment.title, `Started deploy of '${project}' v${version}`);
+  t.is(attachment.title_link, expectedLink);
+  t.is(attachment.text, `v${version}`);
+  t.is(attachment.color, '#2795b6');
 });
