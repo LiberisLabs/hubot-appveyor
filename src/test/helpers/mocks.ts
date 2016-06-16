@@ -33,6 +33,12 @@ export class MockScopedHttpClient implements hubot.IScopedHttpClient {
       handler(null, { statusCode: 200 }, '');
     };
   }
+
+  public get() {
+    return (handler: hubot.IHttpClientHandler) => {
+      handler(null, { statusCode: 200 }, '');
+    }
+  }
 }
 
 export class MockSlackAdapter implements ISlackAdapter {
@@ -46,6 +52,7 @@ export class MockRobotBrain implements hubot.IHubotBrain {
 
 export class MockAppVeyor implements IAppVeyor {
   public build(projectSlug) { return null; }
+  public builds(projectSlug) { return null; }
   public deploy(projectSlug, version, environment) { return null; }
 }
 

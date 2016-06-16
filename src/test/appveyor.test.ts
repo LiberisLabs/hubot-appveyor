@@ -63,6 +63,73 @@ test.cb('appveyor > build', (t) => {
   }).catch(t.end);
 });
 
+test.cb('appveyor > builds', (t) => {
+  const token = 'my-token';
+  const account = 'my-account';
+  const project = 'my-project';
+  const response = {
+   "project":{
+      "accountName":"appvyr",
+      "slug":"wix-test",
+   },
+   "builds":[
+      {
+         "version":"1.0.5",
+         "message": "Enabled diag mode",
+         "branch":"master",
+         "committerName":"Feodor Fitsner",
+         "status":"success",
+      },
+      {
+         "version":"1.0.3",
+         "message":"Added appveyor.yml",
+         "branch":"master",
+         "committerName":"Feodor Fitsner",
+         "status":"success",
+      }
+   ]
+};
+
+  const httpClient = new MockScopedHttpClient();
+
+  const headerSpy = sinon.spy(httpClient, 'header');
+
+  const getStub = sinon.stub(httpClient, 'get');
+  getStub.returns((handler: IHttpClientHandler) => {
+    handler(null, { statusCode: 200 }, JSON.stringify(response));
+  });
+
+  const httpStub = sinon.stub().returns(httpClient);
+
+  const appveyor = new AppVeyor(httpStub, token, account);
+  const result = appveyor.builds(project);
+
+  sinon.assert.calledWith(httpStub, `https://ci.appveyor.com/api/projects/${account}/${project}/history?recordsNumber=5`);
+  sinon.assert.calledWith(headerSpy, 'Authorization', `Bearer ${token}`);
+  sinon.assert.calledWith(headerSpy, 'Content-Type', 'application/json');
+  sinon.assert.calledWith(headerSpy, 'Accept', 'application/json');
+  sinon.assert.calledOnce(getStub);
+
+  result.then((data) => {
+    t.is(data.body.accountName, account);
+    t.is(data.body.projectSlug, project);
+
+    t.is(data.body.builds[0].version, response.builds[0].version);
+    t.is(data.body.builds[0].message, response.builds[0].message);
+    t.is(data.body.builds[0].branch, response.builds[0].branch);
+    t.is(data.body.builds[0].committer, response.builds[0].committerName);
+    t.is(data.body.builds[0].link, `https://ci.appveyor.com/project/${account}/${project}/build/${response.builds[0].version}`);
+
+    t.is(data.body.builds[1].version, response.builds[1].version);
+    t.is(data.body.builds[1].message, response.builds[1].message);
+    t.is(data.body.builds[1].branch, response.builds[1].branch);
+    t.is(data.body.builds[1].committer, response.builds[1].committerName);
+    t.is(data.body.builds[1].link, `https://ci.appveyor.com/project/${account}/${project}/build/${response.builds[1].version}`);
+
+    t.end();
+  }).catch(t.end);
+});
+
 test.cb('appveyor > deploy', (t) => {
   const token = 'my-token';
   const account = 'my-account';

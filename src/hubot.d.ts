@@ -12,6 +12,7 @@ declare module "hubot" {
   interface IScopedHttpClient {
     header(name: string, value: string): IScopedHttpClient;
     post(body: string): (handler: IHttpClientHandler) => void;
+    get(): (handler: IHttpClientHandler) => void;
   }
 
   interface IMessageDetail {

@@ -21,8 +21,26 @@ export interface IDeployResponse extends IAppVeyorResponse {
   }
 }
 
+export interface IBuildsResponse extends IAppVeyorResponse {
+  body?: {
+    accountName: string;
+    projectSlug: string;
+    builds: Array<IBuildsBuildResponse>
+  }
+}
+
+interface IBuildsBuildResponse {
+  version: string;
+  message: string;
+  branch: string;
+  committer: string;
+  status: string;
+  link: string;
+}
+
 export interface IAppVeyor {
   build(projectSlug: string): Promise<IBuildResponse>;
+  builds(projectSlug: string): Promise<IBuildsResponse>;
   deploy(projectSlug: string, version: string, environment: string): Promise<IDeployResponse>;
 }
 
@@ -53,6 +71,34 @@ export class AppVeyor implements IAppVeyor {
             projectSlug: projectSlug,
             version: o.version,
             link: `https://ci.appveyor.com/project/${this.accountName}/${projectSlug}/build/${o.version}`
+          }
+        });
+      });
+    });
+  }
+
+  public builds(projectSlug) {
+    return new Promise<IBuildsResponse>((resolve, reject) => {
+      this.get(`https://ci.appveyor.com/api/projects/${this.accountName}/${projectSlug}/history?recordsNumber=5`, (err, resp, data) => {
+        if (err) return reject(err);
+        if (resp.statusCode !== 200) return resolve({ ok: false, statusCode: resp.statusCode });
+
+        const o = JSON.parse(data);
+
+        resolve({
+          ok: true,
+          statusCode: resp.statusCode,
+          body: {
+            accountName: this.accountName,
+            projectSlug: projectSlug,
+            builds: o.builds.map((build) => ({
+              version: build.version,
+              message: build.message,
+              branch: build.branch,
+              committer: build.committerName,
+              status: build.status,
+              link: `https://ci.appveyor.com/project/${this.accountName}/${projectSlug}/build/${build.version}`
+            }))
           }
         });
       });
@@ -94,5 +140,13 @@ export class AppVeyor implements IAppVeyor {
       .header('Content-Type', 'application/json')
       .header('Accept', 'application/json')
       .post(body)(callback);
+  }
+
+  private get(url: string, callback: (err: Error, resp: IHttpResponse, data: string) => void) {
+    this.http(url)
+      .header('Authorization', `Bearer ${this.token}`)
+      .header('Content-Type', 'application/json')
+      .header('Accept', 'application/json')
+      .get()(callback);
   }
 }

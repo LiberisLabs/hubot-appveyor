@@ -5,6 +5,7 @@ import { IHubot } from 'hubot';
 
 import HelloScript from './scripts/hello';
 import BuildScript from './scripts/build';
+import BuildsScript from './scripts/builds';
 import DeployScript from './scripts/deploy';
 import ErrorScript from './scripts/error';
 
@@ -17,5 +18,6 @@ module.exports = (robot: IHubot) => {
   ErrorScript(robot);
   HelloScript(robot);
   BuildScript(robot, appveyor);
+  BuildsScript(robot, appveyor);
   DeployScript(robot, appveyor);
 };
