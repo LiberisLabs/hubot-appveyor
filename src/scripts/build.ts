@@ -1,9 +1,9 @@
-import { IRobot, IScopedHttpClient, IHttpResponse } from 'hubot';
-import { ISlackAdapter, ICustomMessage } from 'hubot-slack';
+import { IHubot, IScopedHttpClient, IHttpResponse } from 'hubot';
+import { ISlackAdapter, ICustomMessageData } from 'hubot-slack';
 import { Config } from '../lib/config';
 import { IAppVeyor } from '../lib/appveyor';
 
-export default (robot: IRobot, appVeyor: IAppVeyor) => {
+export default (robot: IHubot, appVeyor: IAppVeyor) => {
 
   robot.respond(/start build (.*)/i, res => {
     const projectSlug = res.match[1]
@@ -11,15 +11,17 @@ export default (robot: IRobot, appVeyor: IAppVeyor) => {
 
     appVeyor.build(projectSlug)
       .then((data) => {
-        let msgData: ICustomMessage = {
+        if (!data.ok) return res.reply(`Could not start build. Got status code ${data.statusCode}`);
+
+        const msgData: ICustomMessageData = {
           channel: res.message.room,
           text: 'Build started',
           attachments: [
             {
-              fallback: `Started build of '${projectSlug}' v${data.version}: ${data.link}`,
+              fallback: `Started build of '${projectSlug}' v${data.body.version}: ${data.body.link}`,
               title: `Started build of '${projectSlug}'`,
-              title_link: data.link,
-              text: `v${data.version}`,
+              title_link: data.body.link,
+              text: `v${data.body.version}`,
               color: '#7CD197'
             }
           ]
@@ -28,9 +30,9 @@ export default (robot: IRobot, appVeyor: IAppVeyor) => {
         const slackAdapter = robot.adapter as ISlackAdapter;
         slackAdapter.customMessage(msgData);
 
-        robot.brain.set(`${projectSlug}/${data.version}`, JSON.stringify({ username: res.message.user.name }));
+        robot.brain.set(`${projectSlug}/${data.body.version}`, JSON.stringify({ username: res.message.user.name }));
       })
-      .catch(res.reply);
+      .catch((reason) => robot.emit('error', reason, res));
   });
 
   robot.router.post('/hubot/appveyor/webhook', (req, res) => {

@@ -32,7 +32,7 @@ declare module "hubot" {
     (res: IResponse): any;
   }
 
-  interface IRobotBrain {
+  interface IHubotBrain {
     get(key: string): string;
     set(key: string, value: string);
   }
@@ -41,13 +41,28 @@ declare module "hubot" {
 
   }
 
-  interface IRobot {
+  interface IHubotLogger {
+    log(levelStr: string, args: any[]);
+    error(...msg: any[]);
+    emergency(...msg: any[]);
+    alert(...msg: any[]);
+    critical(...msg: any[]);
+    warning(...msg: any[]);
+    notice(...msg: any[]);
+    info(...msg: any[]);
+    debug(...msg: any[]);
+  }
+
+  interface IHubot {
     adapter: IAdapter;
-    brain: IRobotBrain;
+    brain: IHubotBrain;
     router: express.Application;
+    logger: IHubotLogger;
 
     respond(matcher: RegExp, listener: IListener);
     http(url: string): IScopedHttpClient;
     messageRoom(room: string, msg: string);
+    error(handler: (err: Error, res: IResponse) => void)
+    emit(event: string, ...args: any[]): boolean;
   }
 }

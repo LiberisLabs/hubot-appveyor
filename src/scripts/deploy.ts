@@ -1,9 +1,9 @@
-import { IRobot } from 'hubot';
-import { ISlackAdapter, ICustomMessage } from 'hubot-slack';
+import { IHubot } from 'hubot';
+import { ISlackAdapter, ICustomMessageData } from 'hubot-slack';
 import { Config } from '../lib/config';
 import { IAppVeyor } from '../lib/appveyor';
 
-export default (robot: IRobot, appveyor: IAppVeyor) => {
+export default (robot: IHubot, appveyor: IAppVeyor) => {
 
   robot.respond(/deploy (.+) v(.+) to (.+)/i, res => {
     const project = res.match[1];
@@ -14,14 +14,16 @@ export default (robot: IRobot, appveyor: IAppVeyor) => {
 
     appveyor.deploy(project, version, environment)
       .then((data) => {
-        let msgData: ICustomMessage = {
+        if (!data.ok) return res.reply(`Could not deploy. Got status code ${data.statusCode}`);
+
+        let msgData: ICustomMessageData = {
           channel: res.message.room,
           text: 'Deploy started',
           attachments: [
             {
-              fallback: `Started deploy of '${project}' v${version} to '${environment}': ${data.link}`,
+              fallback: `Started deploy of '${project}' v${version} to '${environment}': ${data.body.link}`,
               title: `Started deploy of '${project}' v${version}`,
-              title_link: data.link,
+              title_link: data.body.link,
               text: `v${version}`,
               color: '#2795b6'
             }
@@ -31,6 +33,6 @@ export default (robot: IRobot, appveyor: IAppVeyor) => {
         const slackAdapter = robot.adapter as ISlackAdapter;
         slackAdapter.customMessage(msgData);
       })
-      .catch(res.reply);
+      .catch((reason) => robot.emit('error', reason, res));
   });
 }
