@@ -16,7 +16,7 @@ export default (robot: IHubot) => {
         color: '#801515',
         title: `I've just encountered an error`,
         text: `\`\`\`\n${err.stack}\n\`\`\``,
-        mrkdwn_in: ['title']
+        mrkdwn_in: ['text']
       }]
     };
 

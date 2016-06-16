@@ -48,7 +48,7 @@ test('finbot > catches unhandled errors', (t) => {
   t.is(attachment.title, "I've just encountered an error");
   t.is(attachment.text, `\`\`\`\n${err.stack}\n\`\`\``);
   t.is(attachment.color, '#801515');
-  t.deepEqual(attachment.mrkdwn_in, ['title']);
+  t.deepEqual(attachment.mrkdwn_in, ['text']);
 
   sinon.assert.calledWith(replyStub, 'Uhh, sorry, I just experienced an error :goberserk:');
 });
