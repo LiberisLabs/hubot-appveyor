@@ -76,7 +76,6 @@ test('finbot > lists builds', (t) => {
 
   const actualCustomMessage: ICustomMessageData = customMessageSpy.getCall(0).args[0];
   t.is(actualCustomMessage.channel, room);
-  t.is(actualCustomMessage.text, `Builds: ${project}`);
   t.is(actualCustomMessage.attachments.length, 5);
 
   for (let i = 0; i < 5; i++) {

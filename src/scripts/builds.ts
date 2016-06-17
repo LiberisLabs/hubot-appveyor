@@ -25,7 +25,6 @@ export default (robot: IHubot, appVeyor: IAppVeyor) => {
       .then((data) => {
         let msgData: ICustomMessageData = {
           channel: res.message.room,
-          text: `Builds: ${projectSlug}`,
           attachments: data.body.builds.map((build) => {
             return {
               fallback: `Build v${build.version}: ${build.status} ${build.link}`,
