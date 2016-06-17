@@ -17,11 +17,11 @@ declare module "hubot-slack" {
     
     text?: string;
 
-    fields?: [{
+    fields?: {
       title: string;
       value: string;
       short: boolean;
-    }];
+    }[];
 
     image_url?: string;
     thumb_url?: string;

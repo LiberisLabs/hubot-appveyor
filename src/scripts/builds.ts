@@ -13,6 +13,10 @@ export default (robot: IHubot, appVeyor: IAppVeyor) => {
     return '#CCCCCC';
   }
 
+  const firstUpper = (s: string) => {
+    return s[0].toUpperCase() + s.slice(1);
+  }
+
   robot.respond(/list builds of (.*)/i, res => {
     const projectSlug = res.match[1]
     res.reply('One moment please...');
@@ -27,8 +31,20 @@ export default (robot: IHubot, appVeyor: IAppVeyor) => {
               fallback: `Build v${build.version}: ${build.status} ${build.link}`,
               title: `Build v${build.version}`,
               title_link: build.link,
-              text: `${build.status} - ${build.branch} - ${build.committer}`,
-              color: getColour(build.status)
+              text: firstUpper(build.status),
+              color: getColour(build.status),
+              fields: [
+                {
+                  title: "Branch",
+                  value: build.branch,
+                  short: true
+                },
+                {
+                  title: "Committer",
+                  value: build.committer,
+                  short: true
+                }
+              ]
             }
           })
         };

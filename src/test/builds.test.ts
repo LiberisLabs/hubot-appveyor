@@ -45,11 +45,11 @@ test('finbot > lists builds', (t) => {
       projectSlug: project,
       accountName: account,
       builds: [
-      { version: '1.2.3', status: 'success', branch: 'master', committer: 'findev', link: 'http://link/1', colour: '#7CD197' },
-      { version: '2.2.3', status: 'success', branch: 'master', committer: 'findev', link: 'http://link/2', colour: '#7CD197' },
-      { version: '3.2.3', status: 'failed', branch: 'master', committer: 'findev', link: 'http://link/3', colour: '#D17C8C' },
-      { version: '4.2.3', status: 'wot', branch: 'master', committer: 'findev', link: 'http://link/4', colour: '#CCCCCC' },
-      { version: '5.2.3', status: 'success', branch: 'master', committer: 'findev', link: 'http://link/5', colour: '#7CD197' },
+        { version: '1.2.3', status: 'success', branch: 'master', committer: 'findev', link: 'http://link/1', colour: '#7CD197', expectedStatus: 'Success' },
+        { version: '2.2.3', status: 'success', branch: 'master', committer: 'findev', link: 'http://link/2', colour: '#7CD197', expectedStatus: 'Success' },
+        { version: '3.2.3', status: 'failed', branch: 'master', committer: 'findev', link: 'http://link/3', colour: '#D17C8C', expectedStatus: 'Failed' },
+        { version: '4.2.3', status: 'wot', branch: 'master', committer: 'findev', link: 'http://link/4', colour: '#CCCCCC', expectedStatus: 'Wot' },
+        { version: '5.2.3', status: 'success', branch: 'master', committer: 'findev', link: 'http://link/5', colour: '#7CD197', expectedStatus: 'Success' },
       ]
     }
   };
@@ -84,7 +84,14 @@ test('finbot > lists builds', (t) => {
     t.is(attachment.fallback, `Build v${buildResponse.body.builds[i].version}: ${buildResponse.body.builds[i].status} ${buildResponse.body.builds[i].link}`);
     t.is(attachment.title, `Build v${buildResponse.body.builds[i].version}`);
     t.is(attachment.title_link, buildResponse.body.builds[i].link);
-    t.is(attachment.text,`${buildResponse.body.builds[i].status} - ${buildResponse.body.builds[i].branch} - ${buildResponse.body.builds[i].committer}` );
+    t.is(attachment.text, buildResponse.body.builds[i].expectedStatus);
     t.is(attachment.color, buildResponse.body.builds[i].colour);
+
+    t.is(attachment.fields[0].title, 'Branch');
+    t.is(attachment.fields[0].value, buildResponse.body.builds[i].branch);
+    t.is(attachment.fields[0].short, true);
+    t.is(attachment.fields[1].title, 'Committer');
+    t.is(attachment.fields[1].value, buildResponse.body.builds[i].committer);
+    t.is(attachment.fields[1].short, true);
   }
 });
