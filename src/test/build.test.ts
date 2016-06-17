@@ -3,8 +3,9 @@ import * as sinon from 'sinon';
 
 import { MockRobot, MockRobotBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
 import { IHttpClientHandler } from 'hubot';
-import { ICustomMessage } from 'hubot-slack';
+import { ICustomMessageData } from 'hubot-slack';
 import * as express from 'express';
+import { IBuildResponse } from '../lib/appveyor';
 import { Config } from '../lib/config';
 import BuildScript from '../scripts/build';
 
@@ -40,11 +41,15 @@ test('finbot > starts a build', (t) => {
 
   const expectedLink = `https://ci.appveyor.com/project/${account}/${project}/build/${version}`;
 
-  const buildResponse = {
-    projectSlug: project,
-    accountName: account,
-    version: version,
-    link: expectedLink
+  const buildResponse: IBuildResponse = {
+    ok: true,
+    statusCode: 324324,
+    body: {
+      projectSlug: project,
+      accountName: account,
+      version: version,
+      link: expectedLink
+    }
   };
   const buildPromise = Promise.resolve(buildResponse);
   sinon.stub(buildPromise, 'then')
@@ -67,10 +72,9 @@ test('finbot > starts a build', (t) => {
   sinon.assert.calledWith(replyStub, 'One moment please...');
   sinon.assert.calledOnce(customMessageSpy);
 
-  const actualCustomMessage: ICustomMessage = customMessageSpy.getCall(0).args[0];
+  const actualCustomMessage: ICustomMessageData = customMessageSpy.getCall(0).args[0];
   t.is(actualCustomMessage.channel, room);
   t.is(actualCustomMessage.text, 'Build started');
-  t.is(actualCustomMessage.attachments.length, 1);
 
   const attachment = actualCustomMessage.attachments[0];
   t.is(attachment.fallback, `Started build of '${project}' v${version}: ${expectedLink}`);
@@ -136,4 +140,41 @@ test('finbot > notifies on build completion', (t) => {
   sinon.assert.calledWithExactly(brainGetStub, `${project}/${version}`);
   sinon.assert.calledWithExactly(messageRoomStub, channel, expectedMessage);
   sinon.assert.calledWithExactly(sendStub, 200);
+});
+
+test('finbot > starts a build > handles non-200 response', (t) => {
+  // arrange
+  const robot = new MockRobot();
+  const respondStub = sinon.stub(robot, 'respond');
+
+  const response = new MockResponse();
+  const replyStub = sinon.stub(response, 'reply');
+
+  respondStub.callsArgWith(1, response);
+
+  robot.router = express();
+
+  response.match = [null, 'dsgfasgfsdfsdf'];
+  response.message = {
+    room: 'asdasdasd',
+    user: { name: 'a name' }
+  };
+
+  const buildResponse = {
+    ok: false,
+    statusCode: 403
+  };
+  const buildPromise = Promise.resolve(buildResponse);
+  sinon.stub(buildPromise, 'then')
+    .callsArgWith(0, buildResponse)
+    .returns(Promise.resolve());
+
+  const appVeyor = new MockAppVeyor();
+  sinon.stub(appVeyor, 'build').returns(buildPromise);
+
+  // act
+  BuildScript(robot, appVeyor);
+
+  // assert
+  sinon.assert.calledWith(replyStub, `Could not start build. Got status code 403`);
 });

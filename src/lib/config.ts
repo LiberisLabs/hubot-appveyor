@@ -6,5 +6,6 @@ export const Config = {
       token: process.env.APPVEYOR_WEBHOOK_TOKEN
     }
   },
-  announce_channel: "#finbot-announce"
+  announce_channel: "#finbot-announce",
+  error_channel: "#finbot-coders"
 }

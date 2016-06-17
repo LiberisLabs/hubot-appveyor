@@ -1,7 +1,7 @@
-import { IRobot } from 'hubot';
+import { IHubot } from 'hubot';
 
-export default (robot: IRobot) => {
+export default (robot: IHubot) => {
   robot.respond(/hello/i, (res) => {
-    res.reply("Yeah, hello etc");
+    res.reply("Yeah, hello etc...");
   });
 }

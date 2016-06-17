@@ -1,14 +1,24 @@
 import { IScopedHttpClient, IHttpResponse } from 'hubot';
 
-export interface IBuildResponse {
-  accountName: string;
-  projectSlug: string;
-  version: string;
-  link: string;
+export interface IAppVeyorResponse {
+  ok: boolean;
+  statusCode: number;
+  body?: any;
 }
 
-export interface IDeployResponse {
-  link: string;
+export interface IBuildResponse extends IAppVeyorResponse {
+  body?: {
+    accountName: string;
+    projectSlug: string;
+    version: string;
+    link: string;
+  }
+}
+
+export interface IDeployResponse extends IAppVeyorResponse {
+  body?: {
+    link: string;
+  }
 }
 
 export interface IAppVeyor {
@@ -28,15 +38,22 @@ export class AppVeyor implements IAppVeyor {
     return new Promise<IBuildResponse>((resolve, reject) => {
       this.post('https://ci.appveyor.com/api/builds', body, (err, resp, data) => {
         if (err) return reject(err);
-        if (resp.statusCode !== 200) return reject(new Error(`Got an unexpected status code: ${resp.statusCode}`));
+        if (resp.statusCode !== 200) return resolve({
+          ok: false,
+          statusCode: resp.statusCode
+        });
 
         const o = JSON.parse(data);
 
         resolve({
-          accountName: this.accountName,
-          projectSlug: projectSlug,
-          version: o.version,
-          link: `https://ci.appveyor.com/project/${this.accountName}/${projectSlug}/build/${o.version}`
+          ok: true,
+          statusCode: resp.statusCode,
+          body: {
+            accountName: this.accountName,
+            projectSlug: projectSlug,
+            version: o.version,
+            link: `https://ci.appveyor.com/project/${this.accountName}/${projectSlug}/build/${o.version}`
+          }
         });
       });
     });
@@ -53,12 +70,19 @@ export class AppVeyor implements IAppVeyor {
     return new Promise<IDeployResponse>((resolve, reject) => {
       this.post('https://ci.appveyor.com/api/deployments', body, (err, resp, data) => {
         if (err) return reject(err);
-        if (resp.statusCode !== 200) return reject(new Error(`Got an unexpected status code: ${resp.statusCode}`));
+        if (resp.statusCode !== 200) return resolve({
+          ok: false,
+          statusCode: resp.statusCode
+        });
 
         const o = JSON.parse(data);
 
         resolve({
-          link: `https://ci.appveyor.com/project/${this.accountName}/${projectSlug}/deployment/${o.deploymentId}`
+          ok: true,
+          statusCode: resp.statusCode,
+          body: {
+            link: `https://ci.appveyor.com/project/${this.accountName}/${projectSlug}/deployment/${o.deploymentId}`
+          }
         });
       });
     });

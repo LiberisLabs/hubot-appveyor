@@ -3,7 +3,7 @@ import * as sinon from 'sinon';
 
 import { MockRobot, MockRobotBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter } from './helpers/mocks';
 import { IHttpClientHandler } from 'hubot';
-import { ICustomMessage } from 'hubot-slack';
+import { ICustomMessageData } from 'hubot-slack';
 import * as express from 'express';
 import { Config } from '../lib/config';
 import { AppVeyor } from '../lib/appveyor';
@@ -52,10 +52,12 @@ test.cb('appveyor > build', (t) => {
   sinon.assert.calledWith(postStub, `{"accountName":"${account}","projectSlug":"${project}"}`);
 
   result.then((data) => {
-    t.is(data.accountName, account);
-    t.is(data.projectSlug, project);
-    t.is(data.version, response.version);
-    t.is(data.link, `https://ci.appveyor.com/project/${account}/${project}/build/${response.version}`);
+    t.is(data.ok, true);
+    t.is(data.statusCode, 200);
+    t.is(data.body.accountName, account);
+    t.is(data.body.projectSlug, project);
+    t.is(data.body.version, response.version);
+    t.is(data.body.link, `https://ci.appveyor.com/project/${account}/${project}/build/${response.version}`);
 
     t.end();
   }).catch(t.end);
@@ -98,7 +100,9 @@ test.cb('appveyor > deploy', (t) => {
   sinon.assert.calledWith(postStub, expectedPostBody);
 
   result.then((data) => {
-    t.is(data.link, `https://ci.appveyor.com/project/${account}/${project}/deployment/${deploymentId}`);
+    t.is(data.ok, true);
+    t.is(data.statusCode, 200);
+    t.is(data.body.link, `https://ci.appveyor.com/project/${account}/${project}/deployment/${deploymentId}`);
 
     t.end();
   }).catch(t.end);

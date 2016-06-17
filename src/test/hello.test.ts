@@ -16,5 +16,5 @@ test('finbot > says hello', (t) => {
   HelloScript(robot);
 
   t.true(respondStub.calledWith(/hello/i, sinon.match.func));
-  t.true(replyStub.calledWith('Yeah, hello etc'));
+  t.true(replyStub.calledWith('Yeah, hello etc...'));
 });
