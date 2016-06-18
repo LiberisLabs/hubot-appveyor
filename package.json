@@ -1,12 +1,12 @@
 {
-  "name": "hubot-finbot",
-  "version": "0.0.6",
+  "name": "hubot-appveyor",
+  "version": "0.0.1",
   "author": "David Wood <david.p.wood@gmail.com>",
   "contributors": [
     "David Wood <david.p.wood@gmail.com> (http://codesleuth.co.uk/)",
     "Joshua Hawxwell <m@hawx.me> (http://hawx.me/)"
   ],
-  "description": "Finbot automates all your fintech needs.",
+  "description": "Hubot script for interacting with AppVeyor",
   "scripts": {
     "clean": "rimraf build",
     "prebuild": "npm run clean",
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/LiberisLabs/hubot-finbot"
+    "url": "https://github.com/LiberisLabs/hubot-appveyor"
   },
   "devDependencies": {
     "ava": "^0.15.2",
@@ -34,10 +34,10 @@
   "keywords": [
     "hubot",
     "deploy",
-    "bot",
-    "fintech"
+    "ci",
+    "appveyor"
   ],
   "bugs": {
-    "url": "https://github.com/LiberisLabs/hubot-finbot/issues"
+    "url": "https://github.com/LiberisLabs/hubot-appveyor/issues"
   }
 }
