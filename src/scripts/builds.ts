@@ -13,12 +13,9 @@ export default (robot: IHubot, appVeyor: IAppVeyor) => {
     return '#CCCCCC';
   }
 
-  const firstUpper = (s: string) => {
-    return s[0].toUpperCase() + s.slice(1);
-  }
-
-  robot.respond(/list builds of (.*)/i, res => {
-    const projectSlug = res.match[1]
+  robot.respond(/list (\d+ )?builds of (.*)/i, res => {
+    const buildCount = res.match.length === 3 ? Number(res.match[1]) : 3;
+    const projectSlug = res.match.length === 3 ? res.match[2] : res.match[1];
     res.reply('One moment please...');
 
     appVeyor.builds(projectSlug)
@@ -30,16 +27,13 @@ export default (robot: IHubot, appVeyor: IAppVeyor) => {
               fallback: `Build v${build.version}: ${build.status} ${build.link}`,
               title: `Build v${build.version}`,
               title_link: build.link,
-              text: firstUpper(build.status),
               color: getColour(build.status),
               fields: [
                 {
-                  title: "Branch",
-                  value: build.branch,
+                  title: build.branch,
                   short: true
                 },
                 {
-                  title: "Committer",
                   value: build.committer,
                   short: true
                 }

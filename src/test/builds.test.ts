@@ -70,7 +70,7 @@ test('finbot > lists builds', (t) => {
   BuildsScript(robot, appVeyor);
 
   // assert
-  sinon.assert.calledWith(respondStub, /list builds of (.*)/i, sinon.match.func);
+  sinon.assert.calledWith(respondStub, /list (\d+ )?builds of (.*)/i, sinon.match.func);
   sinon.assert.calledWith(replyStub, 'One moment please...');
   sinon.assert.calledOnce(customMessageSpy);
 
@@ -83,13 +83,10 @@ test('finbot > lists builds', (t) => {
     t.is(attachment.fallback, `Build v${buildResponse.body.builds[i].version}: ${buildResponse.body.builds[i].status} ${buildResponse.body.builds[i].link}`);
     t.is(attachment.title, `Build v${buildResponse.body.builds[i].version}`);
     t.is(attachment.title_link, buildResponse.body.builds[i].link);
-    t.is(attachment.text, buildResponse.body.builds[i].expectedStatus);
     t.is(attachment.color, buildResponse.body.builds[i].colour);
 
-    t.is(attachment.fields[0].title, 'Branch');
-    t.is(attachment.fields[0].value, buildResponse.body.builds[i].branch);
+    t.is(attachment.fields[0].title, buildResponse.body.builds[i].branch);
     t.is(attachment.fields[0].short, true);
-    t.is(attachment.fields[1].title, 'Committer');
     t.is(attachment.fields[1].value, buildResponse.body.builds[i].committer);
     t.is(attachment.fields[1].short, true);
   }
