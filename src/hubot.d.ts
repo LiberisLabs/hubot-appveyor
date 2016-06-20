@@ -60,8 +60,8 @@ declare module "hubot" {
     users(): { [id: string]: User; };
     userForName(name: string): User;
     userForId(id: string, options: any): User;
-    get(key: string): string;
-    set(key: string, value: string): Brain;
+    get(key: string): any;
+    set(key: string, value: any): Brain;
     remove(key: string): Brain;
     close();
     save();

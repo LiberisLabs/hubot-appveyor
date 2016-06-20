@@ -8,6 +8,7 @@ import BuildScript from './scripts/build';
 import BuildsScript from './scripts/builds';
 import DeployScript from './scripts/deploy';
 import ErrorScript from './scripts/error';
+import SettingsScript from './scripts/settings';
 
 import { AppVeyor } from './lib/appveyor';
 import { Config } from './lib/config';
@@ -20,4 +21,5 @@ module.exports = (robot: Robot) => {
   BuildScript(robot, appveyor);
   BuildsScript(robot, appveyor);
   DeployScript(robot, appveyor);
+  SettingsScript(robot);
 };
