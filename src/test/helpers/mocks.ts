@@ -3,22 +3,24 @@ import { ISlackAdapter, ICustomMessageData } from 'hubot-slack';
 import { Application } from 'express';
 import { IAppVeyor, IBuildResponse, IDeployResponse } from '../../lib/appveyor';
 
-export class MockRobot implements hubot.IHubot {
-  public adapter: hubot.IAdapter;
-  public brain: hubot.IHubotBrain;
+export class MockRobot implements hubot.Robot {
+  public adapter: hubot.Adapter;
+  public brain: hubot.Brain;
   public router: Application;
-  public logger: hubot.IHubotLogger;
+  public logger: hubot.Log;
 
-  public respond(matcher: RegExp, listener: hubot.IListener) { }
+  public respond(regex: RegExp, callback: (res: hubot.Response) => void) { }
   public http(url: string) { return null; }
   public messageRoom(room: string, msg: string) { }
-  public error(handler: (err: Error, res: hubot.IResponse) => void) { }
+  public error(handler: (err: Error, res: hubot.Response) => void) { }
   public emit(event: string, args: any[]) { return false; }
 }
 
-export class MockResponse implements hubot.IResponse {
+export class MockResponse implements hubot.Response {
   public match: string[];
-  public message: hubot.IMessageDetail;
+  public message: hubot.Message;
+  public robot: hubot.Robot;
+  public envelope: hubot.IEnvelope;
 
   public reply(msg: string) { }
 }
@@ -45,9 +47,16 @@ export class MockSlackAdapter implements ISlackAdapter {
   public customMessage(msg: ICustomMessageData) { return null; }
 }
 
-export class MockRobotBrain implements hubot.IHubotBrain {
-  public get(key: string) { return null; }
-  public set(key: string, value: string) { }
+export class MockRobotBrain implements hubot.Brain {
+  public users(): { [id: string]: hubot.User; } { return null; }
+  public userForName(name: string): hubot.User { return null; }
+  public userForId(id: string, options: any): hubot.User { return null; }
+  public get(key: string): string { return null; }
+  public set(key: string, value: string): hubot.Brain { return null; }
+  public remove(key: string): hubot.Brain { return null; }
+  public close() { }
+  public save() { }
+  public setAutoSave(enabled: boolean) { }
 }
 
 export class MockAppVeyor implements IAppVeyor {
@@ -56,7 +65,7 @@ export class MockAppVeyor implements IAppVeyor {
   public deploy(projectSlug, version, environment) { return null; }
 }
 
-export class MockHubotLogger implements hubot.IHubotLogger {
+export class MockHubotLogger implements hubot.Log {
   public log(levelStr: string, args: any[]) {}
   public error(msg: any[]) {}
   public emergency(msg: any[]) {}

@@ -35,7 +35,14 @@ test('finbot > lists builds', (t) => {
   response.match = [null, project];
   response.message = {
     room: room,
-    user: { name: username }
+    user: { 
+      id: 'asdsad',
+      name: username,
+      room: 'asdaskjdh'
+    },
+    text: null,
+    id: null,
+    done: false
   };
 
   const buildResponse = {

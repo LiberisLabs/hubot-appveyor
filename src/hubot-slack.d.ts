@@ -1,5 +1,5 @@
 declare module "hubot-slack" {
-  import { IAdapter } from 'hubot';
+  import { Adapter } from 'hubot';
 
   // see https://api.slack.com/docs/attachments
   // also https://api.slack.com/docs/formatting/builder
@@ -49,7 +49,7 @@ declare module "hubot-slack" {
     icon_emoji?: string;
   }
 
-  interface ISlackAdapter extends IAdapter {
+  interface ISlackAdapter extends Adapter {
     customMessage(msg: ICustomMessageData): void;
   }
 }

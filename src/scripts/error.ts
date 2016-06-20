@@ -1,8 +1,8 @@
-import { IHubot, IScopedHttpClient, IHttpResponse } from 'hubot';
+import { Robot, IScopedHttpClient, IHttpResponse } from 'hubot';
 import { ISlackAdapter, ICustomMessageData } from 'hubot-slack';
 import { Config } from '../lib/config';
 
-export default (robot: IHubot) => {
+export default (robot: Robot) => {
 
   robot.error((err, res) => {
     robot.logger.error(`Caught unhandled error.`, err);
