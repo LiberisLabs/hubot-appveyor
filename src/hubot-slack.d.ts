@@ -12,15 +12,15 @@ declare module "hubot-slack" {
     author_link?: string;
     author_icon?: string;
 
-    title: string;
+    title?: string;
     title_link?: string;
     
     text?: string;
 
     fields?: {
-      title: string;
-      value: string;
-      short: boolean;
+      title?: string;
+      value?: string;
+      short?: boolean;
     }[];
 
     image_url?: string;
