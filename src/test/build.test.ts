@@ -2,7 +2,7 @@ import { test } from 'ava';
 import * as sinon from 'sinon';
 
 import { MockRobot, MockRobotBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
-import { IHttpClientHandler } from 'hubot';
+import { IHttpClientHandler, Message } from 'hubot';
 import { ICustomMessageData } from 'hubot-slack';
 import * as express from 'express';
 import { IBuildResponse } from '../lib/appveyor';
@@ -36,7 +36,14 @@ test('finbot > starts a build', (t) => {
   response.match = [null, project];
   response.message = {
     room: room,
-    user: { name: username }
+    user: { 
+      id: 'asdsad',
+      name: username,
+      room: 'asdaskjdh'
+    },
+    text: null,
+    id: null,
+    done: false
   };
 
   const expectedLink = `https://ci.appveyor.com/project/${account}/${project}/build/${version}`;
@@ -156,8 +163,15 @@ test('finbot > starts a build > handles non-200 response', (t) => {
 
   response.match = [null, 'dsgfasgfsdfsdf'];
   response.message = {
-    room: 'asdasdasd',
-    user: { name: 'a name' }
+    room: 'asads',
+    user: { 
+      id: 'asdsad',
+      name: 'asdasd',
+      room: 'asdaskjdh'
+    },
+    text: null,
+    id: null,
+    done: false
   };
 
   const buildResponse = {

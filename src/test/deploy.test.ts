@@ -30,7 +30,14 @@ test('finbot > starts a deploy', (t) => {
   response.match = [null, project, version, environment];
   response.message = {
     room: room,
-    user: { name: null }
+    user: { 
+      id: 'asdsad',
+      name: null,
+      room: 'asdaskjdh'
+    },
+    text: null,
+    id: null,
+    done: false
   };
 
   respondStub.callsArgWith(1, response);
@@ -90,8 +97,15 @@ test('finbot > starts a deploy > handles non-200 response', (t) => {
 
   response.match = [null, 'project', 'version', 'environment'];
   response.message = {
-    room: 'asdasdasd',
-    user: { name: 'a name' }
+    room: 'dasdssdadsad',
+    user: { 
+      id: 'asdsad',
+      name: 'a name',
+      room: 'asdaskjdh'
+    },
+    text: null,
+    id: null,
+    done: false
   };
 
   const deployResponse = {

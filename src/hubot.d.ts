@@ -1,5 +1,5 @@
 declare module "hubot" {
-  import * as express from 'express';
+  import { Application as ExpressApp } from 'express';
 
   interface IHttpResponse {
     statusCode: number;
@@ -15,34 +15,64 @@ declare module "hubot" {
     get(): (handler: IHttpClientHandler) => void;
   }
 
-  interface IMessageDetail {
+  interface IEnvelope {
     room: string;
-    user: {
-      name: string;
-    }
+    user: User;
+    message: Message;
   }
 
-  interface IResponse {
+  export class User {
+    id: string;
+    name: string;
+    room: string;
+  }
+
+  export class Message {
+    user: User;
+    text: string;
+    id: string;
+    room: string;
+    done: boolean;
+  }
+
+  export class EnterMessage extends Message { }
+  export class LeaveMessage extends Message { }
+  export class TopicMessage extends Message { }
+  export class TextMessage extends Message { }
+  export class CatchAllMessage extends Message {
+    message: Message;
+  }
+
+  export class Response {
+    robot: Robot;
     match: string[];
-    message: IMessageDetail;
+    message: Message;
+    envelope: IEnvelope;
+
+    constructor(robot: Robot, message: Message, match: RegExpMatchArray);
 
     reply(msg: string);
   }
 
-  interface IListener {
-    (res: IResponse): any;
-  }
+  export class Brain {
+    constructor(robot: Robot);
 
-  interface IHubotBrain {
+    users(): { [id: string]: User; };
+    userForName(name: string): User;
+    userForId(id: string, options: any): User;
     get(key: string): string;
-    set(key: string, value: string);
+    set(key: string, value: string): Brain;
+    remove(key: string): Brain;
+    close();
+    save();
+    setAutoSave(enabled: boolean);
   }
 
-  interface IAdapter {
-
+  export class Adapter {
+    constructor(robot: Robot);
   }
 
-  interface IHubotLogger {
+  class Log {
     log(levelStr: string, args: any[]);
     error(...msg: any[]);
     emergency(...msg: any[]);
@@ -54,16 +84,19 @@ declare module "hubot" {
     debug(...msg: any[]);
   }
 
-  interface IHubot {
-    adapter: IAdapter;
-    brain: IHubotBrain;
-    router: express.Application;
-    logger: IHubotLogger;
+  export class Robot {
+    adapter: Adapter;
+    brain: Brain;
+    router: ExpressApp;
+    logger: Log;
 
-    respond(matcher: RegExp, listener: IListener);
+    constructor(adapterPath: string, adapter: string, httpd: boolean, name?: string, alias?: boolean);
+
+    respond(regex: RegExp, options: any, callback: (res: Response) => void);
+    respond(regex: RegExp, callback: (res: Response) => void);
     http(url: string): IScopedHttpClient;
     messageRoom(room: string, msg: string);
-    error(handler: (err: Error, res: IResponse) => void)
+    error(handler: (err: Error, res: Response) => void)
     emit(event: string, ...args: any[]): boolean;
   }
 }

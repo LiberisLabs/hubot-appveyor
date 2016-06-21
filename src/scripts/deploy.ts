@@ -1,9 +1,9 @@
-import { IHubot } from 'hubot';
+import { Robot } from 'hubot';
 import { ISlackAdapter, ICustomMessageData } from 'hubot-slack';
 import { Config } from '../lib/config';
 import { IAppVeyor } from '../lib/appveyor';
 
-export default (robot: IHubot, appveyor: IAppVeyor) => {
+export default (robot: Robot, appveyor: IAppVeyor) => {
 
   robot.respond(/deploy (.+) v(.+) to (.+)/i, res => {
     const project = res.match[1];
