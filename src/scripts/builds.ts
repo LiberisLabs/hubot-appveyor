@@ -18,7 +18,7 @@ export default (robot: IHubot, appVeyor: IAppVeyor) => {
     const projectSlug = res.match.length === 3 ? res.match[2] : res.match[1];
     res.reply('One moment please...');
 
-    appVeyor.builds(projectSlug)
+    appVeyor.builds(projectSlug, buildCount)
       .then((data) => {
         let msgData: ICustomMessageData = {
           channel: res.message.room,

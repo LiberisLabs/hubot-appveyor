@@ -40,7 +40,7 @@ interface IBuildsBuildResponse {
 
 export interface IAppVeyor {
   build(projectSlug: string): Promise<IBuildResponse>;
-  builds(projectSlug: string): Promise<IBuildsResponse>;
+  builds(projectSlug: string, count: number): Promise<IBuildsResponse>;
   deploy(projectSlug: string, version: string, environment: string): Promise<IDeployResponse>;
 }
 
@@ -77,9 +77,9 @@ export class AppVeyor implements IAppVeyor {
     });
   }
 
-  public builds(projectSlug) {
+  public builds(projectSlug, count) {
     return new Promise<IBuildsResponse>((resolve, reject) => {
-      this.get(`https://ci.appveyor.com/api/projects/${this.accountName}/${projectSlug}/history?recordsNumber=5`, (err, resp, data) => {
+      this.get(`https://ci.appveyor.com/api/projects/${this.accountName}/${projectSlug}/history?recordsNumber=${count}`, (err, resp, data) => {
         if (err) return reject(err);
         if (resp.statusCode !== 200) return resolve({ ok: false, statusCode: resp.statusCode });
 
