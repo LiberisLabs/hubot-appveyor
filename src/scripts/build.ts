@@ -9,7 +9,11 @@ export default (robot: Robot, appVeyor: IAppVeyor) => {
     const projectSlug = res.match[1]
     res.reply('One moment please...');
 
-    appVeyor.build(projectSlug)
+    const userSettings = robot.brain.get(`appveyor.settings.${res.message.user.id}`);
+    if (userSettings == null)
+      return res.reply(`You must whisper me your AppVeyor API token with "/msg @${robot.name} set token <token>" first`);
+
+    appVeyor.build(projectSlug, userSettings.token)
       .then((data) => {
         if (!data.ok) return res.reply(`Could not start build. Got status code ${data.statusCode}`);
 
@@ -30,7 +34,7 @@ export default (robot: Robot, appVeyor: IAppVeyor) => {
         const slackAdapter = robot.adapter as ISlackAdapter;
         slackAdapter.customMessage(msgData);
 
-        robot.brain.set(`${projectSlug}/${data.body.version}`, JSON.stringify({ username: res.message.user.name }));
+        robot.brain.set(`appveyor.build.${projectSlug}-${data.body.version}`, { username: res.message.user.name });
       })
       .catch((reason) => robot.emit('error', reason, res));
   });
@@ -43,10 +47,9 @@ export default (robot: Robot, appVeyor: IAppVeyor) => {
     const outcome = data.eventName === 'build_success' ? 'succeeded' : 'failed';
 
     let msg = `Build v${data.eventData.buildVersion} of '${data.eventData.projectName} ${outcome}.`;
-    const value = robot.brain.get(`${data.eventData.projectName}/${data.eventData.buildVersion}`);
+    const value = robot.brain.get(`appveyor.build.${data.eventData.projectName}-${data.eventData.buildVersion}`);
     if (value) {
-      const o = JSON.parse(value);
-      msg += ` @${o.username}`;
+      msg += ` @${value.username}`;
     }
 
     robot.messageRoom(Config.announce_channel, msg);

@@ -42,8 +42,8 @@ test.cb('appveyor > build', (t) => {
 
   const httpStub = sinon.stub().returns(httpClient);
 
-  const appveyor = new AppVeyor(httpStub, token, account);
-  const result = appveyor.build(project);
+  const appveyor = new AppVeyor(httpStub, account);
+  const result = appveyor.build(project, token);
 
   sinon.assert.calledWith(httpStub, 'https://ci.appveyor.com/api/builds');
   sinon.assert.calledWith(headerSpy, 'Authorization', `Bearer ${token}`);
@@ -68,27 +68,27 @@ test.cb('appveyor > builds', (t) => {
   const account = 'my-account';
   const project = 'my-project';
   const response = {
-   "project":{
-      "accountName":"appvyr",
-      "slug":"wix-test",
-   },
-   "builds":[
+    "project": {
+      "accountName": "appvyr",
+      "slug": "wix-test",
+    },
+    "builds": [
       {
-         "version":"1.0.5",
-         "message": "Enabled diag mode",
-         "branch":"master",
-         "committerName":"Feodor Fitsner",
-         "status":"success",
+        "version": "1.0.5",
+        "message": "Enabled diag mode",
+        "branch": "master",
+        "committerName": "Feodor Fitsner",
+        "status": "success",
       },
       {
-         "version":"1.0.3",
-         "message":"Added appveyor.yml",
-         "branch":"master",
-         "committerName":"Feodor Fitsner",
-         "status":"success",
+        "version": "1.0.3",
+        "message": "Added appveyor.yml",
+        "branch": "master",
+        "committerName": "Feodor Fitsner",
+        "status": "success",
       }
-   ]
-};
+    ]
+  };
 
   const httpClient = new MockScopedHttpClient();
 
@@ -101,8 +101,8 @@ test.cb('appveyor > builds', (t) => {
 
   const httpStub = sinon.stub().returns(httpClient);
 
-  const appveyor = new AppVeyor(httpStub, token, account);
-  const result = appveyor.builds(project, 2);
+  const appveyor = new AppVeyor(httpStub, account);
+  const result = appveyor.builds(project, 2, token);
 
   sinon.assert.calledWith(httpStub, `https://ci.appveyor.com/api/projects/${account}/${project}/history?recordsNumber=2`);
   sinon.assert.calledWith(headerSpy, 'Authorization', `Bearer ${token}`);
@@ -137,7 +137,7 @@ test.cb('appveyor > deploy', (t) => {
   const version = 'a.b.c';
   const environment = 'dev-env';
   const deploymentId = 1234567890;
-  const response = {deploymentId: deploymentId};
+  const response = { deploymentId: deploymentId };
 
   const httpClient = new MockScopedHttpClient();
 
@@ -157,8 +157,8 @@ test.cb('appveyor > deploy', (t) => {
 
   const httpStub = sinon.stub().returns(httpClient);
 
-  const appveyor = new AppVeyor(httpStub, token, account);
-  const result = appveyor.deploy(project, version, environment);
+  const appveyor = new AppVeyor(httpStub, account);
+  const result = appveyor.deploy(project, version, environment, token);
 
   sinon.assert.calledWith(httpStub, 'https://ci.appveyor.com/api/deployments');
   sinon.assert.calledWith(headerSpy, 'Authorization', `Bearer ${token}`);

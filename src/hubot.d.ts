@@ -89,6 +89,7 @@ declare module "hubot" {
     brain: Brain;
     router: ExpressApp;
     logger: Log;
+    name: string;
 
     constructor(adapterPath: string, adapter: string, httpd: boolean, name?: string, alias?: boolean);
 

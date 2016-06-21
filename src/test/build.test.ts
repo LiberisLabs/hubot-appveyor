@@ -9,8 +9,9 @@ import { IBuildResponse } from '../lib/appveyor';
 import { Config } from '../lib/config';
 import BuildScript from '../scripts/build';
 
-test('finbot > starts a build', (t) => {
+test('finbot > start build', (t) => {
   // arrange
+  const userId = 'asdsad';
   const project = 'a project slug';
   const room = 'a room';
   const version = 'this is a version';
@@ -29,6 +30,7 @@ test('finbot > starts a build', (t) => {
   const robotBrain = new MockRobotBrain();
   robot.brain = robotBrain;
   const brainSetSpy = sinon.spy(robotBrain, 'set');
+  const brainGetStub = sinon.stub(robotBrain, 'get').returns({ token: token });
 
   const robotRouter = express();
   robot.router = robotRouter;
@@ -36,8 +38,8 @@ test('finbot > starts a build', (t) => {
   response.match = [null, project];
   response.message = {
     room: room,
-    user: { 
-      id: 'asdsad',
+    user: {
+      id: userId,
       name: username,
       room: 'asdaskjdh'
     },
@@ -64,7 +66,7 @@ test('finbot > starts a build', (t) => {
     .returns(Promise.resolve());
 
   const appVeyor = new MockAppVeyor();
-  sinon.stub(appVeyor, 'build').returns(buildPromise);
+  const buildStub = sinon.stub(appVeyor, 'build').returns(buildPromise);
 
   const slackAdapter = new MockSlackAdapter();
   const customMessageSpy = sinon.spy(slackAdapter, 'customMessage');
@@ -77,6 +79,8 @@ test('finbot > starts a build', (t) => {
   // assert
   sinon.assert.calledWith(respondStub, /start build (.*)/i, sinon.match.func);
   sinon.assert.calledWith(replyStub, 'One moment please...');
+  sinon.assert.calledWith(brainGetStub, `appveyor.settings.${userId}`);
+  sinon.assert.calledWith(buildStub, project, token);
   sinon.assert.calledOnce(customMessageSpy);
 
   const actualCustomMessage: ICustomMessageData = customMessageSpy.getCall(0).args[0];
@@ -90,10 +94,10 @@ test('finbot > starts a build', (t) => {
   t.is(attachment.text, `v${version}`);
   t.is(attachment.color, '#7CD197');
 
-  sinon.assert.calledWith(brainSetSpy, `${project}/${version}`, `{"username":"${username}"}`);
+  sinon.assert.calledWith(brainSetSpy, `appveyor.build.${project}-${version}`, { username: username });
 });
 
-test('finbot > notifies on build completion', (t) => {
+test('finbot > on build completion > notifies user', (t) => {
   // arrange
   const channel = 'a-channel';
   const token = '0123456789abc';
@@ -112,7 +116,7 @@ test('finbot > notifies on build completion', (t) => {
   robot.router = robotRouter;
 
   const brainGetStub = sinon.stub(robotBrain, 'get');
-  brainGetStub.returns(`{"username":"${username}"}`);
+  brainGetStub.returns({ username: username });
 
   const messageRoomStub = sinon.stub(robot, 'messageRoom');
 
@@ -135,21 +139,21 @@ test('finbot > notifies on build completion', (t) => {
   const postStub = sinon.stub(robotRouter, 'post');
   postStub.callsArgWith(1, request, response);
 
-  const appVeyorStub = new MockAppVeyor();
+  const appVeyor = new MockAppVeyor();
 
   const expectedMessage = `Build v${version} of '${project} succeeded. @${username}`;
 
   // act
-  BuildScript(robot, appVeyorStub);
+  BuildScript(robot, appVeyor);
 
   // assert
   sinon.assert.calledWith(postStub, '/hubot/appveyor/webhook', sinon.match.func);
-  sinon.assert.calledWithExactly(brainGetStub, `${project}/${version}`);
+  sinon.assert.calledWithExactly(brainGetStub, `appveyor.build.${project}-${version}`);
   sinon.assert.calledWithExactly(messageRoomStub, channel, expectedMessage);
   sinon.assert.calledWithExactly(sendStub, 200);
 });
 
-test('finbot > starts a build > handles non-200 response', (t) => {
+test('finbot > start build > handles non-200 response', (t) => {
   // arrange
   const robot = new MockRobot();
   const respondStub = sinon.stub(robot, 'respond');
@@ -159,12 +163,16 @@ test('finbot > starts a build > handles non-200 response', (t) => {
 
   respondStub.callsArgWith(1, response);
 
+  const robotBrain = new MockRobotBrain();
+  robot.brain = robotBrain;
+  const brainGetStub = sinon.stub(robotBrain, 'get').returns({ token: 'asdsad' });
+
   robot.router = express();
 
   response.match = [null, 'dsgfasgfsdfsdf'];
   response.message = {
     room: 'asads',
-    user: { 
+    user: {
       id: 'asdsad',
       name: 'asdasd',
       room: 'asdaskjdh'
@@ -191,4 +199,44 @@ test('finbot > starts a build > handles non-200 response', (t) => {
 
   // assert
   sinon.assert.calledWith(replyStub, `Could not start build. Got status code 403`);
+});
+
+test('finbot > start build > when no token set', (t) => {
+  // arrange
+  const robotName = 'irobot';
+
+  const robot = new MockRobot();
+  robot.name = robotName;
+  const respondStub = sinon.stub(robot, 'respond');
+
+  const response = new MockResponse();
+  const replyStub = sinon.stub(response, 'reply');
+
+  respondStub.callsArgWith(1, response);
+
+  const robotBrain = new MockRobotBrain();
+  robot.brain = robotBrain;
+  sinon.stub(robotBrain, 'get').returns(null);
+
+  const robotRouter = express();
+  robot.router = robotRouter;
+
+  response.match = [null, 'a project slug'];
+  response.message = {
+    room: null,
+    user: {
+      id: 'asdsad',
+      name: null,
+      room: null
+    },
+    text: null,
+    id: null,
+    done: false
+  };
+
+  // act
+  BuildScript(robot, null);
+
+  // assert
+  sinon.assert.calledWith(replyStub, `You must whisper me your AppVeyor API token with "/msg @${robotName} set token <token>" first`);
 });

@@ -14,7 +14,7 @@ import { AppVeyor } from './lib/appveyor';
 import { Config } from './lib/config';
 
 module.exports = (robot: Robot) => {
-  const appveyor = new AppVeyor(robot.http.bind(robot), Config.appveyor.token, Config.appveyor.account);
+  const appveyor = new AppVeyor(robot.http.bind(robot), Config.appveyor.account);
 
   ErrorScript(robot);
   HelloScript(robot);

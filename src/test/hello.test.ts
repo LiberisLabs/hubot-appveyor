@@ -7,7 +7,7 @@ import HelloScript from '../scripts/hello';
 test('finbot > says hello', (t) => {
   const robot = new MockRobot();
   const respondStub = sinon.stub(robot, 'respond');
-  
+
   const response = new MockResponse();
   const replyStub = sinon.stub(response, 'reply');
 
