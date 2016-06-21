@@ -102,9 +102,9 @@ test.cb('appveyor > builds', (t) => {
   const httpStub = sinon.stub().returns(httpClient);
 
   const appveyor = new AppVeyor(httpStub, token, account);
-  const result = appveyor.builds(project);
+  const result = appveyor.builds(project, 2);
 
-  sinon.assert.calledWith(httpStub, `https://ci.appveyor.com/api/projects/${account}/${project}/history?recordsNumber=5`);
+  sinon.assert.calledWith(httpStub, `https://ci.appveyor.com/api/projects/${account}/${project}/history?recordsNumber=2`);
   sinon.assert.calledWith(headerSpy, 'Authorization', `Bearer ${token}`);
   sinon.assert.calledWith(headerSpy, 'Content-Type', 'application/json');
   sinon.assert.calledWith(headerSpy, 'Accept', 'application/json');
