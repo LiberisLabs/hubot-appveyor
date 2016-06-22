@@ -8,8 +8,9 @@ import { ICustomMessageData } from 'hubot-slack';
 import { Config } from '../lib/config';
 import DeployScript from '../scripts/deploy';
 
-test('finbot > starts a deploy', (t) => {
+test('finbot > deploy', (t) => {
   // arrange
+  const userId = 'cookie-monster!';
   const project = 'a project slug';
   const version = 'a.b.c';
   const environment = 'dev-env';
@@ -18,7 +19,6 @@ test('finbot > starts a deploy', (t) => {
   const room = 'a-room';
   const deploymentId = 1234567890;
 
-  Config.appveyor.token = token;
   Config.appveyor.account = account;
 
   const robot = new MockRobot();
@@ -30,8 +30,8 @@ test('finbot > starts a deploy', (t) => {
   response.match = [null, project, version, environment];
   response.message = {
     room: room,
-    user: { 
-      id: 'asdsad',
+    user: {
+      id: userId,
       name: null,
       room: 'asdaskjdh'
     },
@@ -41,6 +41,10 @@ test('finbot > starts a deploy', (t) => {
   };
 
   respondStub.callsArgWith(1, response);
+
+  const robotBrain = new MockRobotBrain();
+  robot.brain = robotBrain;
+  const brainGetStub = sinon.stub(robotBrain, 'get').returns({ token: token });
 
   const expectedLink = `https://ci.appveyor.com/project/${account}/${project}/deployment/${deploymentId}`;
 
@@ -53,11 +57,11 @@ test('finbot > starts a deploy', (t) => {
   };
   const deployPromise = Promise.resolve(deployResponse);
   sinon.stub(deployPromise, 'then')
-       .callsArgWith(0, deployResponse)
-       .returns(Promise.resolve());
+    .callsArgWith(0, deployResponse)
+    .returns(Promise.resolve());
 
   const appVeyor = new MockAppVeyor();
-  sinon.stub(appVeyor, 'deploy').returns(deployPromise);
+  const deployStub = sinon.stub(appVeyor, 'deploy').returns(deployPromise);
 
   const slackAdapter = new MockSlackAdapter();
   const customMessageSpy = sinon.spy(slackAdapter, 'customMessage');
@@ -70,6 +74,8 @@ test('finbot > starts a deploy', (t) => {
   // assert
   sinon.assert.calledWith(respondStub, /deploy (.+) v(.+) to (.+)/i, sinon.match.func);
   sinon.assert.calledWith(replyStub, `Starting deploy of '${project}' to '${environment}'...`);
+  sinon.assert.calledWith(brainGetStub, `appveyor.settings.${userId}`);
+  sinon.assert.calledWith(deployStub, project, version, environment)
   sinon.assert.calledOnce(customMessageSpy);
 
   const actualCustomMessage: ICustomMessageData = customMessageSpy.getCall(0).args[0];
@@ -85,7 +91,7 @@ test('finbot > starts a deploy', (t) => {
   t.is(attachment.color, '#2795b6');
 });
 
-test('finbot > starts a deploy > handles non-200 response', (t) => {
+test('finbot > deploy > handles non-200 response', (t) => {
   // arrange
   const robot = new MockRobot();
   const respondStub = sinon.stub(robot, 'respond');
@@ -95,10 +101,14 @@ test('finbot > starts a deploy > handles non-200 response', (t) => {
 
   respondStub.callsArgWith(1, response);
 
+  const robotBrain = new MockRobotBrain();
+  robot.brain = robotBrain;
+  sinon.stub(robotBrain, 'get').returns({ token: 'asdasd' });
+
   response.match = [null, 'project', 'version', 'environment'];
   response.message = {
     room: 'dasdssdadsad',
-    user: { 
+    user: {
       id: 'asdsad',
       name: 'a name',
       room: 'asdaskjdh'
@@ -125,4 +135,41 @@ test('finbot > starts a deploy > handles non-200 response', (t) => {
 
   // assert
   sinon.assert.calledWith(replyStub, `Could not deploy. Got status code 403`);
+});
+
+test('finbot > deploy > when no token set', (t) => {
+  // arrange
+  const robotName = 'irobot';
+
+  const robot = new MockRobot();
+  robot.name = robotName;
+  const respondStub = sinon.stub(robot, 'respond');
+
+  const response = new MockResponse();
+  const replyStub = sinon.stub(response, 'reply');
+
+  respondStub.callsArgWith(1, response);
+
+  const robotBrain = new MockRobotBrain();
+  robot.brain = robotBrain;
+  sinon.stub(robotBrain, 'get').returns(null);
+
+  response.match = [null, 'a project slug', 'version 1', 'home'];
+  response.message = {
+    room: null,
+    user: {
+      id: 'asdsad',
+      name: null,
+      room: null
+    },
+    text: null,
+    id: null,
+    done: false
+  };
+
+  // act
+  DeployScript(robot, null);
+
+  // assert
+  sinon.assert.calledWith(replyStub, `You must whisper me your AppVeyor API token with "/msg @${robotName} set token <token>" first`);
 });

@@ -4,12 +4,12 @@ import * as sinon from 'sinon';
 import { MockRobot, MockRobotBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
 import { IHttpClientHandler } from 'hubot';
 import { ICustomMessageData } from 'hubot-slack';
-import * as express from 'express';
 import { Config } from '../lib/config';
 import BuildsScript from '../scripts/builds';
 
-test('finbot > lists builds', (t) => {
+test('finbot > list builds', (t) => {
   // arrange
+  const userId = 'asdsad';
   const project = 'a project slug';
   const room = 'a room';
   const version = 'this is a version';
@@ -28,15 +28,13 @@ test('finbot > lists builds', (t) => {
   const robotBrain = new MockRobotBrain();
   robot.brain = robotBrain;
   const brainSetSpy = sinon.spy(robotBrain, 'set');
-
-  const robotRouter = express();
-  robot.router = robotRouter;
+  const brainGetStub = sinon.stub(robotBrain, 'get').returns({ token: token });
 
   response.match = [null, project];
   response.message = {
     room: room,
-    user: { 
-      id: 'asdsad',
+    user: {
+      id: userId,
       name: username,
       room: 'asdaskjdh'
     },
@@ -66,7 +64,7 @@ test('finbot > lists builds', (t) => {
     .returns(Promise.resolve());
 
   const appVeyor = new MockAppVeyor();
-  sinon.stub(appVeyor, 'builds').returns(buildPromise);
+  const buildsStub = sinon.stub(appVeyor, 'builds').returns(buildPromise);
 
   const slackAdapter = new MockSlackAdapter();
   const customMessageSpy = sinon.spy(slackAdapter, 'customMessage');
@@ -79,6 +77,8 @@ test('finbot > lists builds', (t) => {
   // assert
   sinon.assert.calledWith(respondStub, /list (\d+ )?builds of (.*)/i, sinon.match.func);
   sinon.assert.calledWith(replyStub, 'One moment please...');
+  sinon.assert.calledWith(brainGetStub, `appveyor.settings.${userId}`);
+  sinon.assert.calledWith(buildsStub, project, 3, token);
   sinon.assert.calledOnce(customMessageSpy);
 
   const actualCustomMessage: ICustomMessageData = customMessageSpy.getCall(0).args[0];
@@ -97,4 +97,41 @@ test('finbot > lists builds', (t) => {
     t.is(attachment.fields[1].value, buildResponse.body.builds[i].committer);
     t.is(attachment.fields[1].short, true);
   }
+});
+
+test('finbot > list builds > when no token set', (t) => {
+  // arrange
+  const robotName = 'irobot';
+
+  const robot = new MockRobot();
+  robot.name = robotName;
+  const respondStub = sinon.stub(robot, 'respond');
+
+  const response = new MockResponse();
+  const replyStub = sinon.stub(response, 'reply');
+
+  respondStub.callsArgWith(1, response);
+
+  const robotBrain = new MockRobotBrain();
+  robot.brain = robotBrain;
+  sinon.stub(robotBrain, 'get').returns(null);
+
+  response.match = [null, 'a project slug'];
+  response.message = {
+    room: null,
+    user: {
+      id: 'asdsad',
+      name: null,
+      room: null
+    },
+    text: null,
+    id: null,
+    done: false
+  };
+
+  // act
+  BuildsScript(robot, null);
+
+  // assert
+  sinon.assert.calledWith(replyStub, `You must whisper me your AppVeyor API token with "/msg @${robotName} set token <token>" first`);
 });

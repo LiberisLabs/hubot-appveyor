@@ -18,7 +18,11 @@ export default (robot: Robot, appVeyor: IAppVeyor) => {
     const projectSlug = res.match.length === 3 ? res.match[2] : res.match[1];
     res.reply('One moment please...');
 
-    appVeyor.builds(projectSlug, buildCount)
+    const userSettings = robot.brain.get(`appveyor.settings.${res.message.user.id}`);
+    if (userSettings == null)
+      return res.reply(`You must whisper me your AppVeyor API token with "/msg @${robot.name} set token <token>" first`);
+
+    appVeyor.builds(projectSlug, buildCount, userSettings.token)
       .then((data) => {
         let msgData: ICustomMessageData = {
           channel: res.message.room,

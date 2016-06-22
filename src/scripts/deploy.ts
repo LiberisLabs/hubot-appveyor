@@ -10,9 +10,13 @@ export default (robot: Robot, appveyor: IAppVeyor) => {
     const version = res.match[2];
     const environment = res.match[3];
 
+    const userSettings = robot.brain.get(`appveyor.settings.${res.message.user.id}`);
+    if (userSettings == null)
+      return res.reply(`You must whisper me your AppVeyor API token with "/msg @${robot.name} set token <token>" first`);
+
     res.reply(`Starting deploy of '${project}' to '${environment}'...`);
 
-    appveyor.deploy(project, version, environment)
+    appveyor.deploy(project, version, environment, userSettings.token)
       .then((data) => {
         if (!data.ok) return res.reply(`Could not deploy. Got status code ${data.statusCode}`);
 

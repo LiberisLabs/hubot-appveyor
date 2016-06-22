@@ -60,8 +60,8 @@ declare module "hubot" {
     users(): { [id: string]: User; };
     userForName(name: string): User;
     userForId(id: string, options: any): User;
-    get(key: string): string;
-    set(key: string, value: string): Brain;
+    get(key: string): any;
+    set(key: string, value: any): Brain;
     remove(key: string): Brain;
     close();
     save();
@@ -89,6 +89,7 @@ declare module "hubot" {
     brain: Brain;
     router: ExpressApp;
     logger: Log;
+    name: string;
 
     constructor(adapterPath: string, adapter: string, httpd: boolean, name?: string, alias?: boolean);
 

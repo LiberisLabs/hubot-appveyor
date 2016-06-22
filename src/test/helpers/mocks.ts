@@ -8,6 +8,7 @@ export class MockRobot implements hubot.Robot {
   public brain: hubot.Brain;
   public router: Application;
   public logger: hubot.Log;
+  public name: string;
 
   public respond(regex: RegExp, callback: (res: hubot.Response) => void) { }
   public http(url: string) { return null; }
@@ -66,14 +67,14 @@ export class MockAppVeyor implements IAppVeyor {
 }
 
 export class MockHubotLogger implements hubot.Log {
-  public log(levelStr: string, args: any[]) {}
-  public error(msg: any[]) {}
-  public emergency(msg: any[]) {}
-  public alert(msg: any[]) {}
-  public critical(msg: any[]) {}
-  public warning(msg: any[]) {}
-  public notice(msg: any[]) {}
-  public info(msg: any[]) {}
-  public debug(msg: any[]) {}
+  public log(levelStr: string, args: any[]) { }
+  public error(msg: any[]) { }
+  public emergency(msg: any[]) { }
+  public alert(msg: any[]) { }
+  public critical(msg: any[]) { }
+  public warning(msg: any[]) { }
+  public notice(msg: any[]) { }
+  public info(msg: any[]) { }
+  public debug(msg: any[]) { }
 }
 
