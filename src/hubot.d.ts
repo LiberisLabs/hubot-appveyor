@@ -54,7 +54,12 @@ declare module "hubot" {
     reply(msg: string);
   }
 
-  export class Brain {
+  export interface IBrain {
+    get(key: string): any;
+    set(key: string, value: any): IBrain;
+  }
+
+  export class Brain implements IBrain{
     constructor(robot: Robot);
 
     users(): { [id: string]: User; };

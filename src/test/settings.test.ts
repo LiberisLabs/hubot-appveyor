@@ -1,7 +1,7 @@
 import { test } from 'ava';
 import * as sinon from 'sinon';
 
-import { MockRobot, MockResponse, MockRobotBrain } from './helpers/mocks';
+import { MockRobot, MockResponse, MockSecureBrain } from './helpers/mocks';
 import SettingScript from '../scripts/settings';
 
 test('finbot > sets the appveyor token for a user', (t) => {
@@ -30,11 +30,10 @@ test('finbot > sets the appveyor token for a user', (t) => {
 
   respondStub.callsArgWith(1, response);
 
-  const robotBrain = new MockRobotBrain();
-  robot.brain = robotBrain;
-  const brainSetSpy = sinon.spy(robotBrain, 'set');
+  const secureBrain = new MockSecureBrain();
+  const brainSetSpy = sinon.spy(secureBrain, 'set');
 
-  SettingScript(robot);
+  SettingScript(robot, secureBrain);
 
   sinon.assert.calledWith(respondStub, /set token (.+)/i, sinon.match.func);
   sinon.assert.calledWith(replyStub, 'Your token has been set');
@@ -55,11 +54,10 @@ test('finbot > rejects a token which is too short', (t) => {
 
   respondStub.callsArgWith(1, response);
 
-  const robotBrain = new MockRobotBrain();
-  robot.brain = robotBrain;
-  const brainSetSpy = sinon.spy(robotBrain, 'set');
+  const secureBrain = new MockSecureBrain();
+  const brainSetSpy = sinon.spy(secureBrain, 'set');
 
-  SettingScript(robot);
+  SettingScript(robot, secureBrain);
 
   sinon.assert.calledWith(respondStub, /set token (.+)/i, sinon.match.func);
   sinon.assert.calledWith(replyStub, 'Token looks to be too short');
