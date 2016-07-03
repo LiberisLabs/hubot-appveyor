@@ -1,3 +1,14 @@
+// Description:
+//   Automates build and deploy actions on AppVeyor.
+//
+// Dependencies:
+//   "source-map-support": "^0.4.0"
+//
+// Configuration:
+//   APPVEYOR_ACCOUNT
+//   APPVEYOR_WEBHOOK_TOKEN
+//   SECURE_BRAIN_KEY
+
 import { install } from 'source-map-support';
 install();
 
