@@ -8,6 +8,6 @@ export const Config = {
   announce_channel: "#finbot-announce",
   error_channel: "#finbot-coders",
   secure_brain: {
-    key: process.env.SECURE_KEY
+    key: process.env.SECURE_BRAIN_KEY
   }
 }

@@ -15,6 +15,20 @@ import { SecureBrain } from './lib/secure_brain';
 import { Config } from './lib/config';
 
 module.exports = (robot: Robot) => {
+
+  const requiredVariables = [
+    'APPVEYOR_ACCOUNT',
+    'APPVEYOR_WEBHOOK_TOKEN',
+    'SECURE_BRAIN_KEY'
+  ];
+
+  requiredVariables.forEach(e => {
+    if (process.env[e] === undefined) {
+      console.error(`Please define the environment variable for ${e}`);
+      process.exit(1);
+    }
+  });
+
   const appveyor = new AppVeyor(robot.http.bind(robot), Config.appveyor.account);
   const secureBrain = new SecureBrain(robot, Config.secure_brain.key);
 
