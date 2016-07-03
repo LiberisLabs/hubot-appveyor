@@ -37,6 +37,22 @@ test('secure_brain > gets an object value', (t) => {
   assert.deepStrictEqual(returnValue, { some: 'value' });
 });
 
+test('secure_brain > gets an unencrypted value', (t) => {
+  const robot = new MockRobot();
+
+  const robotBrain = new MockRobotBrain();
+  robot.brain = robotBrain;
+  const brainGetStub = sinon.stub(robotBrain, 'get').returns('hello');
+
+  const secureBrain = new SecureBrain(robot, 'key');
+
+  const returnValue = secureBrain.get('some key');
+
+  
+  sinon.assert.calledWith(brainGetStub, 'some key');
+  assert.deepStrictEqual(returnValue, 'hello');
+});
+
 test('secure_brain > sets a string value', (t) => {
   const robot = new MockRobot();
 
@@ -90,7 +106,7 @@ test('secure_brain > gets a malformed value', (t) => {
 
   const robotBrain = new MockRobotBrain();
   robot.brain = robotBrain;
-  const brainGetStub = sinon.stub(robotBrain, 'get').returns('zzzzzzzzz');
+  const brainGetStub = sinon.stub(robotBrain, 'get').returns('b4216c9c0b30be78126100989f6a5f15850fe11e00b1951b07d5422cf017aa79');
 
   const secureBrain = new SecureBrain(robot, 'secret');
 
@@ -98,5 +114,5 @@ test('secure_brain > gets a malformed value', (t) => {
 
   
   sinon.assert.calledWith(brainGetStub, 'my key');
-  assert.strictEqual(returnValue, null);
+  assert.strictEqual(returnValue, 'b4216c9c0b30be78126100989f6a5f15850fe11e00b1951b07d5422cf017aa79');
 });

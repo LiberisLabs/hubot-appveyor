@@ -7,7 +7,7 @@ export default (robot: Robot, secureBrain: ISecureBrain) => {
     if (token.length < 20)
       return res.reply('Token looks to be too short');
 
-    secureBrain.set(`appveyor.settings.${res.message.user.id}`, { token: res.match[1] });
+    secureBrain.set(`appveyor.settings.${res.message.user.id}`, { token: token });
     res.reply("Your token has been set");
   });
 }

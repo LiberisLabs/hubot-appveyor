@@ -37,17 +37,20 @@ export class SecureBrain implements ISecureBrain {
   }
   
   get(key: string): any {
-    const secureValue = this._robot.brain.get(key);
+    const brainValue = this._robot.brain.get(key);
     
-    if (secureValue === null)
+    if (brainValue === null)
       return null;
 
+    let decipheredValue: string;
+
     try {
-      const value = this._cipher.decrypt(secureValue);
-      return JSON.parse(value);
+      decipheredValue = this._cipher.decrypt(brainValue);
     } catch (_) {
-      return null;
+      return brainValue;
     }
+
+    return JSON.parse(decipheredValue);    
   }
   
   set(key: string, value: any): ISecureBrain {
