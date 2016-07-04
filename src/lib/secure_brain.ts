@@ -2,25 +2,24 @@ import * as crypto from 'crypto';
 import { Robot } from 'hubot';
 
 class Cipher {
-  private _cipher: crypto.Cipher;
-  private _decipher: crypto.Decipher;
-
   constructor(private _key: string) { }
 
-  private get cipher(): crypto.Cipher {
-    return this._cipher || (this._cipher = crypto.createCipher('aes256', this._key)); 
+  private getCipher(): crypto.Cipher {
+    return crypto.createCipher('aes256', this._key); 
   }
 
-  private get decipher(): crypto.Decipher {
-    return this._decipher || (this._decipher = crypto.createDecipher('aes256', this._key)); 
+  private getDecipher(): crypto.Decipher {
+    return crypto.createDecipher('aes256', this._key); 
   }
 
   encrypt(value: string) {
-    return this.cipher.update(value, 'utf8', 'hex') + this.cipher.final('hex');
+    const cipher = this.getCipher();
+    return cipher.update(value, 'utf8', 'hex') + cipher.final('hex');
   }
 
   decrypt(value: string) {
-    return this.decipher.update(value, 'hex', 'utf8') + this.decipher.final('utf8');
+    const decipher = this.getDecipher();
+    return decipher.update(value, 'hex', 'utf8') + decipher.final('utf8');
   }
 }
 
