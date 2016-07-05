@@ -59,7 +59,7 @@ declare module "hubot" {
     set(key: string, value: any): IBrain;
   }
 
-  export class Brain implements IBrain{
+  export class Brain implements IBrain {
     constructor(robot: Robot);
 
     users(): { [id: string]: User; };

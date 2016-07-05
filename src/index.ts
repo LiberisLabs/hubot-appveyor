@@ -41,7 +41,7 @@ module.exports = (robot: Robot) => {
   });
 
   const appveyor = new AppVeyor(robot.http.bind(robot), Config.appveyor.account);
-  const secureBrain = new SecureBrain(robot, Config.secure_brain.key);
+  const secureBrain = new SecureBrain(robot.brain, Config.secure_brain.key);
 
   ErrorScript(robot);
   HelloScript(robot);
