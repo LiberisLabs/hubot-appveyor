@@ -1,7 +1,7 @@
 import { test } from 'ava';
 import * as sinon from 'sinon';
 
-import { MockRobot, MockRobotBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
+import { MockRobot, MockRobotBrain, MockSecureBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
 import { IHttpClientHandler, Message } from 'hubot';
 import { ICustomMessageData } from 'hubot-slack';
 import * as express from 'express';
@@ -27,10 +27,12 @@ test('finbot > start build', (t) => {
 
   respondStub.callsArgWith(1, response);
 
+  const secureBrain = new MockSecureBrain();
+  const secureBrainGetStub = sinon.stub(secureBrain, 'get').returns({ token: token });
+
   const robotBrain = new MockRobotBrain();
   robot.brain = robotBrain;
   const brainSetSpy = sinon.spy(robotBrain, 'set');
-  const brainGetStub = sinon.stub(robotBrain, 'get').returns({ token: token });
 
   const robotRouter = express();
   robot.router = robotRouter;
@@ -74,12 +76,12 @@ test('finbot > start build', (t) => {
   robot.adapter = slackAdapter;
 
   // act
-  BuildScript(robot, appVeyor);
+  BuildScript(robot, appVeyor, secureBrain);
 
   // assert
   sinon.assert.calledWith(respondStub, /start build (.*)/i, sinon.match.func);
   sinon.assert.calledWith(replyStub, 'One moment please...');
-  sinon.assert.calledWith(brainGetStub, `appveyor.settings.${userId}`);
+  sinon.assert.calledWith(secureBrainGetStub, `appveyor.settings.${userId}`);
   sinon.assert.calledWith(buildStub, project, token);
   sinon.assert.calledOnce(customMessageSpy);
 
@@ -110,9 +112,9 @@ test('finbot > on build completion > notifies user', (t) => {
 
   const robot = new MockRobot();
   const robotBrain = new MockRobotBrain();
+  robot.brain = robotBrain;
   const robotRouter = express();
 
-  robot.brain = robotBrain;
   robot.router = robotRouter;
 
   const brainGetStub = sinon.stub(robotBrain, 'get');
@@ -144,7 +146,7 @@ test('finbot > on build completion > notifies user', (t) => {
   const expectedMessage = `Build v${version} of '${project} succeeded. @${username}`;
 
   // act
-  BuildScript(robot, appVeyor);
+  BuildScript(robot, appVeyor, robotBrain);
 
   // assert
   sinon.assert.calledWith(postStub, '/hubot/appveyor/webhook', sinon.match.func);
@@ -163,9 +165,8 @@ test('finbot > start build > handles non-200 response', (t) => {
 
   respondStub.callsArgWith(1, response);
 
-  const robotBrain = new MockRobotBrain();
-  robot.brain = robotBrain;
-  const brainGetStub = sinon.stub(robotBrain, 'get').returns({ token: 'asdsad' });
+  const secureBrain = new MockSecureBrain();
+  const brainGetStub = sinon.stub(secureBrain, 'get').returns({ token: 'asdsad' });
 
   robot.router = express();
 
@@ -195,7 +196,7 @@ test('finbot > start build > handles non-200 response', (t) => {
   sinon.stub(appVeyor, 'build').returns(buildPromise);
 
   // act
-  BuildScript(robot, appVeyor);
+  BuildScript(robot, appVeyor, secureBrain);
 
   // assert
   sinon.assert.calledWith(replyStub, `Could not start build. Got status code 403`);
@@ -214,9 +215,8 @@ test('finbot > start build > when no token set', (t) => {
 
   respondStub.callsArgWith(1, response);
 
-  const robotBrain = new MockRobotBrain();
-  robot.brain = robotBrain;
-  sinon.stub(robotBrain, 'get').returns(null);
+  const secureBrain = new MockSecureBrain();
+  sinon.stub(secureBrain, 'get').returns(null);
 
   const robotRouter = express();
   robot.router = robotRouter;
@@ -235,7 +235,7 @@ test('finbot > start build > when no token set', (t) => {
   };
 
   // act
-  BuildScript(robot, null);
+  BuildScript(robot, null, secureBrain);
 
   // assert
   sinon.assert.calledWith(replyStub, `You must whisper me your AppVeyor API token with "/msg @${robotName} set token <token>" first`);

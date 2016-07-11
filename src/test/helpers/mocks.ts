@@ -2,42 +2,43 @@ import * as hubot from 'hubot';
 import { ISlackAdapter, ICustomMessageData } from 'hubot-slack';
 import { Application } from 'express';
 import { IAppVeyor, IBuildResponse, IDeployResponse } from '../../lib/appveyor';
+import { ISecureBrain } from '../../lib/secure_brain';
 
 export class MockRobot implements hubot.Robot {
-  public adapter: hubot.Adapter;
-  public brain: hubot.Brain;
-  public router: Application;
-  public logger: hubot.Log;
-  public name: string;
+  adapter: hubot.Adapter;
+  brain: hubot.Brain;
+  router: Application;
+  logger: hubot.Log;
+  name: string;
 
-  public respond(regex: RegExp, callback: (res: hubot.Response) => void) { }
-  public http(url: string) { return null; }
-  public messageRoom(room: string, msg: string) { }
-  public error(handler: (err: Error, res: hubot.Response) => void) { }
-  public emit(event: string, args: any[]) { return false; }
+  respond(regex: RegExp, callback: (res: hubot.Response) => void) { }
+  http(url: string) { return null; }
+  messageRoom(room: string, msg: string) { }
+  error(handler: (err: Error, res: hubot.Response) => void) { }
+  emit(event: string, args: any[]) { return false; }
 }
 
 export class MockResponse implements hubot.Response {
-  public match: string[];
-  public message: hubot.Message;
-  public robot: hubot.Robot;
-  public envelope: hubot.IEnvelope;
+  match: string[];
+  message: hubot.Message;
+  robot: hubot.Robot;
+  envelope: hubot.IEnvelope;
 
-  public reply(msg: string) { }
+  reply(msg: string) { }
 }
 
 export class MockScopedHttpClient implements hubot.IScopedHttpClient {
-  public header(name: string, value: string) {
+  header(name: string, value: string) {
     return this;
   }
 
-  public post(body: string) {
+  post(body: string) {
     return (handler: hubot.IHttpClientHandler) => {
       handler(null, { statusCode: 200 }, '');
     };
   }
 
-  public get() {
+  get() {
     return (handler: hubot.IHttpClientHandler) => {
       handler(null, { statusCode: 200 }, '');
     }
@@ -45,36 +46,40 @@ export class MockScopedHttpClient implements hubot.IScopedHttpClient {
 }
 
 export class MockSlackAdapter implements ISlackAdapter {
-  public customMessage(msg: ICustomMessageData) { return null; }
+  customMessage(msg: ICustomMessageData) { return null; }
 }
 
 export class MockRobotBrain implements hubot.Brain {
-  public users(): { [id: string]: hubot.User; } { return null; }
-  public userForName(name: string): hubot.User { return null; }
-  public userForId(id: string, options: any): hubot.User { return null; }
-  public get(key: string): string { return null; }
-  public set(key: string, value: string): hubot.Brain { return null; }
-  public remove(key: string): hubot.Brain { return null; }
-  public close() { }
-  public save() { }
-  public setAutoSave(enabled: boolean) { }
+  users(): { [id: string]: hubot.User; } { return null; }
+  userForName(name: string): hubot.User { return null; }
+  userForId(id: string, options: any): hubot.User { return null; }
+  get(key: string): string { return null; }
+  set(key: string, value: string): hubot.Brain { return null; }
+  remove(key: string): hubot.Brain { return null; }
+  close() { }
+  save() { }
+  setAutoSave(enabled: boolean) { }
 }
 
 export class MockAppVeyor implements IAppVeyor {
-  public build(projectSlug) { return null; }
-  public builds(projectSlug) { return null; }
-  public deploy(projectSlug, version, environment) { return null; }
+  build(projectSlug) { return null; }
+  builds(projectSlug) { return null; }
+  deploy(projectSlug, version, environment) { return null; }
 }
 
 export class MockHubotLogger implements hubot.Log {
-  public log(levelStr: string, args: any[]) { }
-  public error(msg: any[]) { }
-  public emergency(msg: any[]) { }
-  public alert(msg: any[]) { }
-  public critical(msg: any[]) { }
-  public warning(msg: any[]) { }
-  public notice(msg: any[]) { }
-  public info(msg: any[]) { }
-  public debug(msg: any[]) { }
+  log(levelStr: string, args: any[]) { }
+  error(msg: any[]) { }
+  emergency(msg: any[]) { }
+  alert(msg: any[]) { }
+  critical(msg: any[]) { }
+  warning(msg: any[]) { }
+  notice(msg: any[]) { }
+  info(msg: any[]) { }
+  debug(msg: any[]) { }
 }
 
+export class MockSecureBrain implements ISecureBrain {
+  get(key: string): any { return null; }
+  set(key: string, value: any): ISecureBrain { return null; }
+}

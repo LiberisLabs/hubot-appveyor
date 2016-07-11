@@ -1,7 +1,7 @@
 import { test } from 'ava';
 import * as sinon from 'sinon';
 
-import { MockRobot, MockRobotBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
+import { MockRobot, MockRobotBrain, MockSecureBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
 import { IHttpClientHandler } from 'hubot';
 import { ICustomMessageData } from 'hubot-slack';
 import { Config } from '../lib/config';
@@ -25,10 +25,12 @@ test('finbot > list builds', (t) => {
 
   respondStub.callsArgWith(1, response);
 
+  const secureBrain = new MockSecureBrain();
+  const secureBrainGetStub = sinon.stub(secureBrain, 'get').returns({ token: token });
+
   const robotBrain = new MockRobotBrain();
   robot.brain = robotBrain;
   const brainSetSpy = sinon.spy(robotBrain, 'set');
-  const brainGetStub = sinon.stub(robotBrain, 'get').returns({ token: token });
 
   response.match = [null, project];
   response.message = {
@@ -72,12 +74,12 @@ test('finbot > list builds', (t) => {
   robot.adapter = slackAdapter;
 
   // act
-  BuildsScript(robot, appVeyor);
+  BuildsScript(robot, appVeyor, secureBrain);
 
   // assert
   sinon.assert.calledWith(respondStub, /list (\d+ )?builds of (.*)/i, sinon.match.func);
   sinon.assert.calledWith(replyStub, 'One moment please...');
-  sinon.assert.calledWith(brainGetStub, `appveyor.settings.${userId}`);
+  sinon.assert.calledWith(secureBrainGetStub, `appveyor.settings.${userId}`);
   sinon.assert.calledWith(buildsStub, project, 3, token);
   sinon.assert.calledOnce(customMessageSpy);
 
@@ -112,9 +114,8 @@ test('finbot > list builds > when no token set', (t) => {
 
   respondStub.callsArgWith(1, response);
 
-  const robotBrain = new MockRobotBrain();
-  robot.brain = robotBrain;
-  sinon.stub(robotBrain, 'get').returns(null);
+  const secureBrain = new MockSecureBrain();
+  sinon.stub(secureBrain, 'get').returns(null);
 
   response.match = [null, 'a project slug'];
   response.message = {
@@ -130,7 +131,7 @@ test('finbot > list builds > when no token set', (t) => {
   };
 
   // act
-  BuildsScript(robot, null);
+  BuildsScript(robot, null, secureBrain);
 
   // assert
   sinon.assert.calledWith(replyStub, `You must whisper me your AppVeyor API token with "/msg @${robotName} set token <token>" first`);

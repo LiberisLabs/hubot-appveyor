@@ -2,15 +2,16 @@ import { Robot } from 'hubot';
 import { ISlackAdapter, ICustomMessageData } from 'hubot-slack';
 import { Config } from '../lib/config';
 import { IAppVeyor } from '../lib/appveyor';
+import { ISecureBrain } from '../lib/secure_brain';
 
-export default (robot: Robot, appveyor: IAppVeyor) => {
+export default (robot: Robot, appveyor: IAppVeyor, secureBrain: ISecureBrain) => {
 
   robot.respond(/deploy (.+) v(.+) to (.+)/i, res => {
     const project = res.match[1];
     const version = res.match[2];
     const environment = res.match[3];
 
-    const userSettings = robot.brain.get(`appveyor.settings.${res.message.user.id}`);
+    const userSettings = secureBrain.get(`appveyor.settings.${res.message.user.id}`);
     if (userSettings == null)
       return res.reply(`You must whisper me your AppVeyor API token with "/msg @${robot.name} set token <token>" first`);
 

@@ -1,7 +1,7 @@
 import { test } from 'ava';
 import * as sinon from 'sinon';
 
-import { MockRobot, MockRobotBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
+import { MockRobot, MockRobotBrain, MockSecureBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
 import { IDeployResponse } from '../lib/appveyor';
 import { IHttpClientHandler } from 'hubot';
 import { ICustomMessageData } from 'hubot-slack';
@@ -42,9 +42,8 @@ test('finbot > deploy', (t) => {
 
   respondStub.callsArgWith(1, response);
 
-  const robotBrain = new MockRobotBrain();
-  robot.brain = robotBrain;
-  const brainGetStub = sinon.stub(robotBrain, 'get').returns({ token: token });
+  const secureBrain = new MockSecureBrain();
+  const secureBrainGetStub = sinon.stub(secureBrain, 'get').returns({ token: token });
 
   const expectedLink = `https://ci.appveyor.com/project/${account}/${project}/deployment/${deploymentId}`;
 
@@ -69,12 +68,12 @@ test('finbot > deploy', (t) => {
   robot.adapter = slackAdapter;
 
   // act
-  DeployScript(robot, appVeyor);
+  DeployScript(robot, appVeyor, secureBrain);
 
   // assert
   sinon.assert.calledWith(respondStub, /deploy (.+) v(.+) to (.+)/i, sinon.match.func);
   sinon.assert.calledWith(replyStub, `Starting deploy of '${project}' to '${environment}'...`);
-  sinon.assert.calledWith(brainGetStub, `appveyor.settings.${userId}`);
+  sinon.assert.calledWith(secureBrainGetStub, `appveyor.settings.${userId}`);
   sinon.assert.calledWith(deployStub, project, version, environment)
   sinon.assert.calledOnce(customMessageSpy);
 
@@ -101,9 +100,8 @@ test('finbot > deploy > handles non-200 response', (t) => {
 
   respondStub.callsArgWith(1, response);
 
-  const robotBrain = new MockRobotBrain();
-  robot.brain = robotBrain;
-  sinon.stub(robotBrain, 'get').returns({ token: 'asdasd' });
+  const secureBrain = new MockSecureBrain();
+  sinon.stub(secureBrain, 'get').returns({ token: 'asdasd' });
 
   response.match = [null, 'project', 'version', 'environment'];
   response.message = {
@@ -131,7 +129,7 @@ test('finbot > deploy > handles non-200 response', (t) => {
   sinon.stub(appVeyor, 'deploy').returns(deployPromise);
 
   // act
-  DeployScript(robot, appVeyor);
+  DeployScript(robot, appVeyor, secureBrain);
 
   // assert
   sinon.assert.calledWith(replyStub, `Could not deploy. Got status code 403`);
@@ -150,9 +148,8 @@ test('finbot > deploy > when no token set', (t) => {
 
   respondStub.callsArgWith(1, response);
 
-  const robotBrain = new MockRobotBrain();
-  robot.brain = robotBrain;
-  sinon.stub(robotBrain, 'get').returns(null);
+  const secureBrain = new MockSecureBrain();
+  sinon.stub(secureBrain, 'get').returns(null);
 
   response.match = [null, 'a project slug', 'version 1', 'home'];
   response.message = {
@@ -168,7 +165,7 @@ test('finbot > deploy > when no token set', (t) => {
   };
 
   // act
-  DeployScript(robot, null);
+  DeployScript(robot, null, secureBrain);
 
   // assert
   sinon.assert.calledWith(replyStub, `You must whisper me your AppVeyor API token with "/msg @${robotName} set token <token>" first`);
