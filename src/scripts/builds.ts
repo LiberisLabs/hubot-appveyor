@@ -52,4 +52,60 @@ export default (robot: Robot, appVeyor: IAppVeyor, secureBrain: ISecureBrain) =>
       })
       .catch(res.reply);
   });
+
+  /* POST body is:
+
+    token=IhMEKxlHHYQ0NsnQhCfNAPHX
+    team_id=T0001
+    team_domain=example
+    channel_id=C2147483705
+    channel_name=test
+    user_id=U2147483697
+    user_name=Steve
+    command=/weather
+    text=94070
+    response_url=https://hooks.slack.com/commands/1234/5678
+
+  */
+
+  // /list-builds my-project
+  robot.router.post('/slash/list-builds', (req, res) => {
+    const buildCount = 3;
+    const projectSlug = req.body.text;
+
+    const userSettings = secureBrain.get(`appveyor.settings.${req.body.user_id}`);
+    if (userSettings == null) {
+      res.write(`You must whisper me your AppVeyor API token with "/msg @${robot.name} set token <token>" first`);
+      return res.send(200);
+    }
+
+    appVeyor.builds(projectSlug, buildCount, userSettings.token)
+      .then((data) => {
+        let msgData: ICustomMessageData = {
+          response_type: 'ephemeral',
+          attachments: data.body.builds.map((build) => {
+            return {
+              fallback: `Build v${build.version}: ${build.status} ${build.link}`,
+              title: `Build v${build.version}`,
+              title_link: build.link,
+              color: getColour(build.status),
+              fields: [
+                {
+                  title: build.branch,
+                  short: true
+                },
+                {
+                  value: build.committer,
+                  short: true
+                }
+              ]
+            }
+          })
+        };
+
+        res.write(JSON.stringify(msgData));
+        res.send(200);
+      })
+      .catch(() => res.send(500));
+  });
 }
