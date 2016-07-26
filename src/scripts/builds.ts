@@ -53,24 +53,8 @@ export default (robot: Robot, appVeyor: IAppVeyor, secureBrain: ISecureBrain) =>
       .catch(res.reply);
   });
 
-  /* POST body is:
-
-    token=IhMEKxlHHYQ0NsnQhCfNAPHX
-    team_id=T0001
-    team_domain=example
-    channel_id=C2147483705
-    channel_name=test
-    user_id=U2147483697
-    user_name=Steve
-    command=/weather
-    text=94070
-    response_url=https://hooks.slack.com/commands/1234/5678
-
-  */
-
-  // /list-builds my-project
   robot.router.post('/slash/list-builds', (req, res) => {
-    const buildCount = 3;
+    const buildCount = 5;
     const projectSlug = req.body.text;
 
     const userSettings = secureBrain.get(`appveyor.settings.${req.body.user_id}`);
