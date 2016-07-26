@@ -29,7 +29,7 @@ export interface IBuildsResponse extends IAppVeyorResponse {
   }
 }
 
-interface IBuildsBuildResponse {
+export interface IBuildsBuildResponse {
   version: string;
   message: string;
   branch: string;

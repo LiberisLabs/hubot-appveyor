@@ -1,5 +1,6 @@
 import { test } from 'ava';
 import * as sinon from 'sinon';
+import * as express from 'express';
 
 import { MockRobot, MockRobotBrain, MockSecureBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
 import { IHttpClientHandler } from 'hubot';
@@ -18,6 +19,10 @@ test('finbot > list builds', (t) => {
   const username = 'a name';
 
   const robot = new MockRobot();
+
+  const robotRouter = express();
+  robot.router = robotRouter;
+
   const respondStub = sinon.stub(robot, 'respond');
 
   const response = new MockResponse();
@@ -106,6 +111,10 @@ test('finbot > list builds > when no token set', (t) => {
   const robotName = 'irobot';
 
   const robot = new MockRobot();
+  
+  const robotRouter = express();
+  robot.router = robotRouter;
+
   robot.name = robotName;
   const respondStub = sinon.stub(robot, 'respond');
 

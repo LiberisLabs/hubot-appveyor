@@ -40,7 +40,8 @@ declare module "hubot-slack" {
   }
 
   interface ICustomMessageData {
-    channel: string;
+    channel?: string;
+    response_type?: string;
     message?: ICustomMessage;
     text?: string;
     attachments?: Array<IAttachment>;
