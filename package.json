@@ -24,12 +24,9 @@
   "devDependencies": {
     "ava": "^0.15.2",
     "express": "^4.13.4",
-    "rimraf": "^2.5.2",
-    "sinon": "^1.17.4",
+    "rimraf": "^2.5.4",
+    "sinon": "^1.17.5",
     "typescript": "^1.8.10"
-  },
-  "dependencies": {
-    "source-map-support": "^0.4.0"
   },
   "keywords": [
     "hubot",
@@ -39,5 +36,6 @@
   ],
   "bugs": {
     "url": "https://github.com/LiberisLabs/hubot-appveyor/issues"
-  }
+  },
+  "dependencies": {}
 }

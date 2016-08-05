@@ -9,9 +9,6 @@
 //   APPVEYOR_WEBHOOK_TOKEN
 //   SECURE_BRAIN_KEY
 
-import { install } from 'source-map-support';
-install();
-
 import { Robot } from 'hubot';
 
 import HelloScript from './scripts/hello';

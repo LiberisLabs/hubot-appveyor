@@ -4,6 +4,11 @@ import { Application } from 'express';
 import { IAppVeyor, IBuildResponse, IDeployResponse } from '../../lib/appveyor';
 import { ISecureBrain } from '../../lib/secure_brain';
 
+interface Responder {
+  regex: RegExp,
+  callback: (res: hubot.Response) => void
+}
+
 export class MockRobot implements hubot.Robot {
   adapter: hubot.Adapter;
   brain: hubot.Brain;
@@ -11,11 +16,26 @@ export class MockRobot implements hubot.Robot {
   logger: hubot.Log;
   name: string;
 
-  respond(regex: RegExp, callback: (res: hubot.Response) => void) { }
+  responders = new Array<Responder>();
+
+  respond(regex: RegExp, callback: (res: hubot.Response) => void) {
+    this.responders.push({ regex: regex, callback: callback });
+  }
+
   http(url: string) { return null; }
   messageRoom(room: string, msg: string) { }
   error(handler: (err: Error, res: hubot.Response) => void) { }
   emit(event: string, args: any[]) { return false; }
+
+  getRespondMatches(message: string): [Responder, RegExpMatchArray][] {
+    const result = new Array<[Responder, RegExpMatchArray]>();
+    for (let responder of this.responders) {
+      const match = message.match(responder.regex)
+      if (match !== null)
+        result.push([responder, match]);
+    }
+    return result;
+  }
 }
 
 export class MockResponse implements hubot.Response {

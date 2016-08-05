@@ -15,8 +15,8 @@ export default (robot: Robot, appVeyor: IAppVeyor, secureBrain: ISecureBrain) =>
   }
 
   robot.respond(/list (\d+ )?builds of (.*)/i, res => {
-    const buildCount = res.match.length === 3 ? Number(res.match[1]) : 3;
-    const projectSlug = res.match.length === 3 ? res.match[2] : res.match[1];
+    const buildCount = res.match[1] !== undefined ? Number(res.match[1]) : 3;
+    const projectSlug = res.match[2];
     res.reply('One moment please...');
 
     const userSettings = secureBrain.get(`appveyor.settings.${res.message.user.id}`);

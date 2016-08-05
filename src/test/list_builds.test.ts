@@ -1,16 +1,20 @@
-import { test } from 'ava';
+import { test, ContextualTestContext } from 'ava';
 import * as sinon from 'sinon';
+import * as assert from 'assert';
 
 import { MockRobot, MockRobotBrain, MockSecureBrain, MockResponse, MockScopedHttpClient, MockSlackAdapter, MockAppVeyor } from './helpers/mocks';
-import { IHttpClientHandler } from 'hubot';
+import { IHttpClientHandler, Response } from 'hubot';
 import { ICustomMessageData } from 'hubot-slack';
 import { Config } from '../lib/config';
 import BuildsScript from '../scripts/builds';
 
-test('finbot > list builds', (t) => {
+test('finbot > list builds', listBuildsTest, 'list 5 builds of some-project', 5, 'some-project');
+test('finbot > list builds', listBuildsTest, 'list 3 builds of my-project', 3, 'my-project');
+test('finbot > list builds without count', listBuildsTest, 'list builds of asdasd...asdad', 3, 'asdasd...asdad');
+
+function listBuildsTest(t: ContextualTestContext, message: string, count: number, project: string) {
   // arrange
   const userId = 'asdsad';
-  const project = 'a project slug';
   const room = 'a room';
   const version = 'this is a version';
   const token = '12345';
@@ -18,12 +22,9 @@ test('finbot > list builds', (t) => {
   const username = 'a name';
 
   const robot = new MockRobot();
-  const respondStub = sinon.stub(robot, 'respond');
 
   const response = new MockResponse();
   const replyStub = sinon.stub(response, 'reply');
-
-  respondStub.callsArgWith(1, response);
 
   const secureBrain = new MockSecureBrain();
   const secureBrainGetStub = sinon.stub(secureBrain, 'get').returns({ token: token });
@@ -32,7 +33,6 @@ test('finbot > list builds', (t) => {
   robot.brain = robotBrain;
   const brainSetSpy = sinon.spy(robotBrain, 'set');
 
-  response.match = [null, project];
   response.message = {
     room: room,
     user: {
@@ -40,8 +40,8 @@ test('finbot > list builds', (t) => {
       name: username,
       room: 'asdaskjdh'
     },
-    text: null,
-    id: null,
+    text: undefined,
+    id: undefined,
     done: false
   };
 
@@ -73,14 +73,21 @@ test('finbot > list builds', (t) => {
 
   robot.adapter = slackAdapter;
 
-  // act
   BuildsScript(robot, appVeyor, secureBrain);
 
+  // act
+  const responders = robot.getRespondMatches(message);
+  const [responder, match] = responders[0];
+  response.match = match;
+  responder.callback(response);
+
   // assert
-  sinon.assert.calledWith(respondStub, /list (\d+ )?builds of (.*)/i, sinon.match.func);
+  assert.strictEqual(responders.length, 1);
+  assert.deepEqual(responder.regex, /list (\d+ )?builds of (.*)/i);
+
   sinon.assert.calledWith(replyStub, 'One moment please...');
   sinon.assert.calledWith(secureBrainGetStub, `appveyor.settings.${userId}`);
-  sinon.assert.calledWith(buildsStub, project, 3, token);
+  sinon.assert.calledWith(buildsStub, project, count, token);
   sinon.assert.calledOnce(customMessageSpy);
 
   const actualCustomMessage: ICustomMessageData = customMessageSpy.getCall(0).args[0];
@@ -99,40 +106,4 @@ test('finbot > list builds', (t) => {
     t.is(attachment.fields[1].value, buildResponse.body.builds[i].committer);
     t.is(attachment.fields[1].short, true);
   }
-});
-
-test('finbot > list builds > when no token set', (t) => {
-  // arrange
-  const robotName = 'irobot';
-
-  const robot = new MockRobot();
-  robot.name = robotName;
-  const respondStub = sinon.stub(robot, 'respond');
-
-  const response = new MockResponse();
-  const replyStub = sinon.stub(response, 'reply');
-
-  respondStub.callsArgWith(1, response);
-
-  const secureBrain = new MockSecureBrain();
-  sinon.stub(secureBrain, 'get').returns(null);
-
-  response.match = [null, 'a project slug'];
-  response.message = {
-    room: null,
-    user: {
-      id: 'asdsad',
-      name: null,
-      room: null
-    },
-    text: null,
-    id: null,
-    done: false
-  };
-
-  // act
-  BuildsScript(robot, null, secureBrain);
-
-  // assert
-  sinon.assert.calledWith(replyStub, `You must whisper me your AppVeyor API token with "/msg @${robotName} set token <token>" first`);
-});
+}
