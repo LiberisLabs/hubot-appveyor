@@ -5,4 +5,3 @@
 /// <reference path="modules/ava/index.d.ts" />
 /// <reference path="modules/mime/index.d.ts" />
 /// <reference path="modules/sinon/index.d.ts" />
-/// <reference path="modules/source-map-support/index.d.ts" />
